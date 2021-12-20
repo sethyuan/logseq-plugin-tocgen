@@ -1,0 +1,21 @@
+{
+  "name": "logseq-plugin-tocgen",
+  "version": "1.0.0",
+  "main": "dist/index.html",
+  "logseq": {
+    "id": "_sethyuan-logseq-tocgen",
+    "icon": "./icon.png"
+  },
+  "scripts": {
+    "start": "wmr",
+    "build": "wmr build",
+    "serve": "wmr serve"
+  },
+  "dependencies": {
+    "@logseq/libs": "^0.0.1-alpha.33",
+    "preact": "^10.6.4"
+  },
+  "devDependencies": {
+    "wmr": "^3.7.2"
+  }
+}
