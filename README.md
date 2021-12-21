@@ -6,6 +6,8 @@ Generate a TOC of any page anywhere and quickly access the page's content.
 
 ## 使用展示 (Usage)
 
+![demo](./demo.gif)
+
 ## 设置宏 (Setup macro)
 
 为了让插件更方便使用，你可能会希望参照如下说明来创建一个宏。
@@ -59,7 +61,7 @@ You can specify how many levels to generate.
 }
 ```
 
-在 Logseq 的插件页面打开插件的配置后，有以下几项配置可供使用，请参照上方代码块进行设置（各项的默认值以体现上代码块中）：
+在 Logseq 的插件页面打开插件的配置后，有以下几项配置可供使用，请参照上方代码块进行设置（各项的默认值以体现在代码块中）：
 
 - `defaultLevels`: 默认创建目录的级数，创建目录时没有指定级数时会使用此设置。
 - `defaultCollapsed`: 默认目录是否为折叠状态。
