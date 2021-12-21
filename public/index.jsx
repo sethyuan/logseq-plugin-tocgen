@@ -101,9 +101,6 @@ async function observeAndGenerate(id, page, levels, lang) {
     const blockEl = getBlockEl(node)
     if (blockEl == null) return false
 
-    const level = +blockEl.getAttribute("level")
-    if (level > levels) return false
-
     const blockID = blockEl.getAttribute("blockid")
     const block = await logseq.Editor.getBlock(blockID)
     if (block?.page.id !== page.id) return false
@@ -126,10 +123,6 @@ async function observeAndGenerate(id, page, levels, lang) {
       }
 
       for (const node of mutation.addedNodes) {
-        if (await renderIfPageBlock(node)) return
-      }
-
-      for (const node of mutation.removedNodes) {
         if (await renderIfPageBlock(node)) return
       }
     }
