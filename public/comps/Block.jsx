@@ -4,7 +4,9 @@ import { ConfigContext } from "./ConfigProvider.jsx"
 
 export default function Block({ page, block, levels }) {
   const [content, setContent] = useState("")
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(
+    logseq.settings?.defaultCollapsed ?? false,
+  )
   const { lang } = useContext(ConfigContext)
 
   useEffect(() => {

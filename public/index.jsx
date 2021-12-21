@@ -49,7 +49,10 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
   if (type !== ":tocgen") return
 
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-  const levels = !args[2] || args[2] === "$2" ? 2 : +args[2]
+  const levels =
+    !args[2] || args[2] === "$2"
+      ? logseq.settings?.defaultLevels ?? 1
+      : +args[2]
   const id = `kef-toc-${Date.now()}-${slot}`
 
   if (!pageName) {
