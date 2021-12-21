@@ -66,7 +66,7 @@ You can specify how many levels to generate.
 - `defaultLevels`: 默认创建目录的级数，创建目录时没有指定级数时会使用此设置。
 - `defaultCollapsed`: 默认目录是否为折叠状态。
 
-There are a couple of user settings available when you access the plugin settings from Logseq's plugins page. Please refer to the source block above (Default values are given in the above source block).
+There are a couple of user settings available when you access the plugin settings from Logseq's plugins page. Please refer to the source block above (Default values are given in the source block).
 
 - `defaultLevels`: It defines how many levels a TOC contains by default if not specified when the TOC is created.
-- `defaultCollapsed`: It defined whether TOC's collapsed by default.
+- `defaultCollapsed`: It defines whether TOC is collapsed by default.
