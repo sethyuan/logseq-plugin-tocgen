@@ -27,8 +27,8 @@ export default function Block({ page, block, levels }) {
     setCollapsed((v) => !v)
   }
 
-  // Hide empty blocks.
-  if (!block.content) return null
+  // Hide empty blocks and render/macro blocks.
+  if (!block.content || /^\s*{{/.test(block.content)) return null
 
   return (
     <>
