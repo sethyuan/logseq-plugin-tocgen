@@ -150,8 +150,7 @@ function getBlockEl(node) {
   const body = document.body
   while (
     node != null &&
-    (node.getAttribute?.("blockid") == null ||
-      node.getAttribute?.("level") == null) &&
+    node.getAttribute?.("blockid") == null &&
     node !== body
   ) {
     node = node.parentElement
