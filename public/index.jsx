@@ -133,6 +133,10 @@ async function observeAndGenerate(id, page, levels, lang) {
     childList: true,
   })
 
+  logseq.beforeunload(() => {
+    observer.disconnect()
+  })
+
   const blocks = await logseq.Editor.getPageBlocksTree(page.name)
   render(
     <ConfigProvider lang={lang}>
