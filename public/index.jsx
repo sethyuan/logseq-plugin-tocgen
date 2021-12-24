@@ -44,7 +44,7 @@ async function main() {
 }
 
 async function tocRenderer({ slot, payload: { arguments: args } }) {
-  const [type, pageName] = args
+  const [type, name] = args
 
   if (type !== ":tocgen") return
 
@@ -55,28 +55,30 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
       : +args[2]
   const id = `kef-toc-${Date.now()}-${slot}`
 
-  if (!pageName) {
+  if (!name) {
     logseq.provideUI({
       key: id,
       slot,
       template: `<div id="${id}" style="color:#f00">[${
-        lang === "zh-CN" ? "缺少页面名！" : "Missing page name!"
+        lang === "zh-CN" ? "缺少页面/块名！" : "Missing page/block name!"
       }]</div>`,
       reset: true,
     })
     return
   }
 
-  const page = await logseq.Editor.getPage(
-    pageName.replace(/^\[\[(.+)\]\]\s*$/, "$1"),
-  )
+  const root = name.startsWith("((")
+    ? await logseq.Editor.getBlock(name.replace(/^\(\((.+)\)\)\s*$/, "$1"), {
+        includeChildren: true,
+      })
+    : await logseq.Editor.getPage(name.replace(/^\[\[(.+)\]\]\s*$/, "$1"))
 
-  if (page == null) {
+  if (root == null) {
     logseq.provideUI({
       key: id,
       slot,
       template: `<div id="${id}" style="color:#f00">[${
-        lang === "zh-CN" ? "页面不存在！" : "Page not found!"
+        lang === "zh-CN" ? "页面/块不存在！" : "Page/Block not found!"
       }]</div>`,
       reset: true,
     })
@@ -91,33 +93,46 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
   })
 
   // Let div root element get generated first.
-  setTimeout(() => observeAndGenerate(id, page, levels, lang), 0)
+  setTimeout(() => observeAndGenerate(id, root, levels, lang), 0)
 }
 
-async function observeAndGenerate(id, page, levels, lang) {
-  const root = parent.document.getElementById(id)
+async function observeAndGenerate(id, root, levels, lang) {
+  const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
     const blockEl = getBlockEl(node)
     if (blockEl == null) return false
 
     const blockID = blockEl.getAttribute("blockid")
-    const block = await logseq.Editor.getBlock(blockID)
-    if (block?.page.id !== page.id) return false
+    let block = await logseq.Editor.getBlock(blockID)
+    if (block == null) return false
+    if (root.page == null && block.page.id !== root.id) return false
+    if (root.page != null) {
+      // Keep checking parent until root is found or no more parent.
+      while (block != null) {
+        if (block.parent.id === root.id) break
+        block = await logseq.Editor.getBlock(block.parent.id)
+      }
+      if (block == null) return false
+    }
 
-    const blocks = await logseq.Editor.getPageBlocksTree(page.name)
+    const blocks =
+      root.page == null
+        ? await logseq.Editor.getPageBlocksTree(root.name)
+        : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
+            .children
     render(
       <ConfigProvider lang={lang}>
-        <TocGen page={page} blocks={blocks} levels={levels} />
+        <TocGen root={root} blocks={blocks} levels={levels} />
       </ConfigProvider>,
-      root,
+      rootEl,
     )
     return true
   }
 
   const observer = new MutationObserver(async (mutationList) => {
     for (const mutation of mutationList) {
-      if (mutation.removedNodes.length > 0 && !root.isConnected) {
+      if (mutation.removedNodes.length > 0 && !rootEl.isConnected) {
         observer.disconnect()
         return
       }
@@ -137,12 +152,15 @@ async function observeAndGenerate(id, page, levels, lang) {
     observer.disconnect()
   })
 
-  const blocks = await logseq.Editor.getPageBlocksTree(page.name)
+  const blocks =
+    root.page == null
+      ? await logseq.Editor.getPageBlocksTree(root.name)
+      : root.children
   render(
     <ConfigProvider lang={lang}>
-      <TocGen page={page} blocks={blocks} levels={levels} />
+      <TocGen root={root} blocks={blocks} levels={levels} />
     </ConfigProvider>,
-    root,
+    rootEl,
   )
 }
 

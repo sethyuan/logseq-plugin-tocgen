@@ -1,8 +1,8 @@
 # logseq-plugin-tocgen
 
-在任何地方生成任一页面的目录，通过它你可以快速访问页面内容。
+在任何地方生成任一页面/块的目录，通过它你可以快速访问页面/块内容。
 
-Generate a TOC of any page anywhere and quickly access the page's content.
+Generate a TOC of any page/block anywhere and quickly access the page/block's content.
 
 ## 使用展示 (Usage)
 
@@ -12,7 +12,7 @@ Generate a TOC of any page anywhere and quickly access the page's content.
 
 为了让插件更方便使用，你可能会希望参照如下说明来创建一个宏。
 
-You also might want to follow the steps below to setup a macro to help facilitate the usage of the plugin.
+You also might want to follow the steps below to setup a macro to help facilitate the use of the plugin.
 
 ![open config.edn](./open_config_edn.jpg)
 
@@ -49,6 +49,11 @@ Create a TOC for a page, you can use "[[" to help find the page.
 You can specify how many levels to generate.
 {{{toc pagename, 2}}}
 {{{toc [[pagename]], 2}}}
+
+你也可以为某一页面块创建一个TOC，直接将块引用粘贴进来就好。
+You can also create a TOC for a block, just paste its reference in.
+{{{toc ((block-reference))}}}
+{{{toc ((block-reference)), 2}}}
 ```
 
 ## 用户配置 (User configs)

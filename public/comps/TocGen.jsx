@@ -1,18 +1,32 @@
-import { useContext } from "preact/hooks"
+import { useContext, useEffect, useState } from "preact/hooks"
+import { parseContent } from "../utils.js"
 import Block from "./Block.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
 
-export default function TocGen({ page, blocks, levels }) {
+export default function TocGen({ root, blocks, levels }) {
   const { lang } = useContext(ConfigContext)
+  const [rootName, setRootName] = useState(root.page == null ? root.name : "")
+
+  useEffect(() => {
+    if (root.page != null) {
+      ;(async () => {
+        setRootName(await parseContent(root.content))
+      })()
+    }
+  }, [root])
 
   function gotoPage() {
-    logseq.Editor.scrollToBlockInPage(page.name)
+    if (root == null) {
+      logseq.Editor.scrollToBlockInPage(root.name)
+    } else {
+      logseq.Editor.scrollToBlockInPage(root.uuid)
+    }
   }
 
   if (blocks == null) {
     return (
       <div style={{ color: "#f00" }}>
-        {lang === "zh-CN" ? "页面不存在！" : "Page not found!"}
+        {lang === "zh-CN" ? "页面/块不存在！" : "Page/Block not found!"}
       </div>
     )
   }
@@ -20,10 +34,10 @@ export default function TocGen({ page, blocks, levels }) {
   return (
     <>
       <div class="kef-tocgen-page" onClick={gotoPage}>
-        {page.name}
+        {rootName}
       </div>
       {blocks.map((block) => (
-        <Block key={block.id} page={page} block={block} levels={levels} />
+        <Block key={block.id} root={root} block={block} levels={levels} />
       ))}
     </>
   )

@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from "preact/hooks"
+import { parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
 
-export default function Block({ page, block, levels }) {
+export default function Block({ root, block, levels }) {
   const [content, setContent] = useState("")
   const [collapsed, setCollapsed] = useState(
     logseq.settings?.defaultCollapsed ?? false,
@@ -16,7 +17,7 @@ export default function Block({ page, block, levels }) {
   }, [block])
 
   function goTo() {
-    logseq.Editor.scrollToBlockInPage(page.name, block.uuid)
+    logseq.Editor.scrollToBlockInPage(root.name, block.uuid)
   }
 
   function goInto() {
@@ -42,16 +43,18 @@ export default function Block({ page, block, levels }) {
         <span class="kef-tocgen-into" onClick={goInto}>
           {content}
         </span>
-        <button class="kef-tocgen-to" onClick={goTo}>
-          {lang === "zh-CN" ? "页面" : "page"}
-        </button>
+        {root.page == null && (
+          <button class="kef-tocgen-to" onClick={goTo}>
+            {lang === "zh-CN" ? "页面" : "page"}
+          </button>
+        )}
       </div>
       {block.level < levels && !collapsed && (
         <div class="kef-tocgen-block-children">
           {block.children.map((subBlock) => (
             <Block
               key={subBlock.id}
-              page={page}
+              root={root}
               block={subBlock}
               levels={levels}
             />
@@ -60,29 +63,4 @@ export default function Block({ page, block, levels }) {
       )}
     </>
   )
-}
-
-async function parseContent(content) {
-  // Replace block refs into their content
-  let match
-  while ((match = /\(\(([^\)]+)\)\)/d.exec(content)) != null) {
-    const [start, end] = match.indices[0]
-    const refUUID = match[1]
-    const refBlock = await logseq.Editor.getBlock(refUUID)
-    const refContent = await parseContent(refBlock.content)
-    content = `${content.substring(0, start)}${refContent}${content.substring(
-      end,
-    )}`
-  }
-
-  // Remove ref IDs.
-  content = content.replace(/\nid:: [a-z0-9\-]+/g, "")
-
-  // Remove heading markup.
-  content = content.replace(/^#+\s*/, "")
-
-  // Remove page refs
-  content = content.replace(/\[\[([^\]]+)\]\]/g, "$1")
-
-  return content
 }
