@@ -14,7 +14,7 @@ export async function parseContent(content) {
   }
 
   // Remove properties.
-  content = content.replace(/(^|\n)[^:]+:: [^\n]+/g, "")
+  content = content.replace(/\b[^:]+:: [^\n]+/g, "")
 
   // Remove heading markup.
   content = content.replace(/^#+\s*/, "")
