@@ -49,7 +49,11 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
   if (type !== ":tocgen") return
 
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-  const name = args[1]?.trim()
+  const nameArg = !args[1] || args[1] === "$1" ? "" : args[1].trim()
+  const isBlock = nameArg?.startsWith("((")
+  const name = isBlock
+    ? nameArg?.replace(/^\(\((.+)\)\)\s*$/, "$1")
+    : nameArg?.replace(/^\[\[(.+)\]\]\s*$/, "$1")
   const levels =
     !args[2] || args[2] === "$2"
       ? logseq.settings?.defaultLevels ?? 1
@@ -58,7 +62,7 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
     !args[3] || args[3] === "$3"
       ? logseq.settings?.defaultHeadingType ?? "any"
       : args[3].trim()
-  const id = `kef-toc-${Date.now()}-${slot}`
+  const id = `kef-toc-${name}-${levels}-${headingType}`
 
   if (!name) {
     logseq.provideUI({
@@ -67,7 +71,6 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
       template: `<div id="${id}" style="color:#f00">[${
         lang === "zh-CN" ? "缺少页面/块名！" : "Missing page/block name!"
       }]</div>`,
-      reset: true,
     })
     return
   }
@@ -80,16 +83,13 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
           ? "标题类型需为 any 或 h！"
           : 'Heading type must be "any" or "h"!'
       }]</div>`,
-      reset: true,
     })
     return
   }
 
-  const root = name.startsWith("((")
-    ? await logseq.Editor.getBlock(name.replace(/^\(\((.+)\)\)\s*$/, "$1"), {
-        includeChildren: true,
-      })
-    : await logseq.Editor.getPage(name.replace(/^\[\[(.+)\]\]\s*$/, "$1"))
+  const root = isBlock
+    ? await logseq.Editor.getBlock(name, { includeChildren: true })
+    : await logseq.Editor.getPage(name)
 
   if (root == null) {
     logseq.provideUI({
@@ -98,7 +98,6 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
       template: `<div id="${id}" style="color:#f00">[${
         lang === "zh-CN" ? "页面/块不存在！" : "Page/Block not found!"
       }]</div>`,
-      reset: true,
     })
     return
   }
@@ -107,7 +106,6 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
     key: id,
     slot,
     template: `<div id="${id}"></div>`,
-    reset: true,
   })
 
   // Let div root element get generated first.
