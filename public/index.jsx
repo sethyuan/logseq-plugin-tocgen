@@ -2,6 +2,7 @@ import "@logseq/libs"
 import { render } from "preact"
 import ConfigProvider from "./comps/ConfigProvider.jsx"
 import TocGen from "./comps/TocGen.jsx"
+import { HeadingTypes } from "./utils.js"
 
 async function main() {
   logseq.App.onMacroRendererSlotted(tocRenderer)
@@ -44,15 +45,19 @@ async function main() {
 }
 
 async function tocRenderer({ slot, payload: { arguments: args } }) {
-  const [type, name] = args
-
+  const [type] = args
   if (type !== ":tocgen") return
 
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+  const name = args[1]?.trim()
   const levels =
     !args[2] || args[2] === "$2"
       ? logseq.settings?.defaultLevels ?? 1
-      : +args[2]
+      : Math.max(1, +args[2] || 1)
+  const headingType =
+    !args[3] || args[3] === "$3"
+      ? logseq.settings?.defaultHeadingType ?? "any"
+      : args[3].trim()
   const id = `kef-toc-${Date.now()}-${slot}`
 
   if (!name) {
@@ -61,6 +66,19 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
       slot,
       template: `<div id="${id}" style="color:#f00">[${
         lang === "zh-CN" ? "缺少页面/块名！" : "Missing page/block name!"
+      }]</div>`,
+      reset: true,
+    })
+    return
+  }
+  if (HeadingTypes[headingType] == null) {
+    logseq.provideUI({
+      key: id,
+      slot,
+      template: `<div id="${id}" style="color:#f00">[${
+        lang === "zh-CN"
+          ? "标题类型需为 any 或 h！"
+          : 'Heading type must be "any" or "h"!'
       }]</div>`,
       reset: true,
     })
@@ -93,10 +111,10 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
   })
 
   // Let div root element get generated first.
-  setTimeout(() => observeAndGenerate(id, root, levels, lang), 0)
+  setTimeout(() => observeAndGenerate(id, root, levels, headingType, lang), 0)
 }
 
-async function observeAndGenerate(id, root, levels, lang) {
+async function observeAndGenerate(id, root, levels, headingType, lang) {
   const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
@@ -123,7 +141,12 @@ async function observeAndGenerate(id, root, levels, lang) {
             .children
     render(
       <ConfigProvider lang={lang}>
-        <TocGen root={root} blocks={blocks} levels={levels} />
+        <TocGen
+          root={root}
+          blocks={blocks}
+          levels={levels}
+          headingType={headingType}
+        />
       </ConfigProvider>,
       rootEl,
     )
@@ -158,7 +181,12 @@ async function observeAndGenerate(id, root, levels, lang) {
       : root.children
   render(
     <ConfigProvider lang={lang}>
-      <TocGen root={root} blocks={blocks} levels={levels} />
+      <TocGen
+        root={root}
+        blocks={blocks}
+        levels={levels}
+        headingType={headingType}
+      />
     </ConfigProvider>,
     rootEl,
   )

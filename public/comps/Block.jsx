@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from "preact/hooks"
-import { parseContent } from "../utils.js"
+import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
 
-export default function Block({ root, block, levels }) {
+export default function Block({ root, block, levels, headingType }) {
   const [content, setContent] = useState("")
   const [collapsed, setCollapsed] = useState(
     logseq.settings?.defaultCollapsed ?? false,
@@ -29,7 +29,12 @@ export default function Block({ root, block, levels }) {
   }
 
   // Hide empty blocks and render/macro blocks.
-  if (!content || /^\s*{{/.test(content)) return null
+  if (
+    !content ||
+    /^\s*{{/.test(content) ||
+    (headingType === HeadingTypes.h && !block.content.startsWith("#"))
+  )
+    return null
 
   return (
     <>
@@ -57,6 +62,7 @@ export default function Block({ root, block, levels }) {
               root={root}
               block={subBlock}
               levels={levels}
+              headingType={={headingType}}
             />
           ))}
         </div>

@@ -24,3 +24,10 @@ export async function parseContent(content) {
 
   return content.trim()
 }
+
+export const HeadingTypes = {
+  // Accepts anything as a heading
+  any: "any",
+  // Accepts only H1..Hn as headings
+  h: "h",
+}

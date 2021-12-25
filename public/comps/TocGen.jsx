@@ -3,7 +3,7 @@ import { parseContent } from "../utils.js"
 import Block from "./Block.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
 
-export default function TocGen({ root, blocks, levels }) {
+export default function TocGen({ root, blocks, levels, headingType }) {
   const { lang } = useContext(ConfigContext)
   const [rootName, setRootName] = useState(root.page == null ? root.name : "")
 
@@ -37,7 +37,13 @@ export default function TocGen({ root, blocks, levels }) {
         {rootName}
       </div>
       {blocks.map((block) => (
-        <Block key={block.id} root={root} block={block} levels={levels} />
+        <Block
+          key={block.id}
+          root={root}
+          block={block}
+          levels={levels}
+          headingType={headingType}
+        />
       ))}
     </>
   )

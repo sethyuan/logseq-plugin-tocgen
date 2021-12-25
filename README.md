@@ -30,7 +30,7 @@ Find where `macros` are configured, make adjustments according the following cod
  ;; Rose is red, violet's blue. Life's ordered: Org assists you.
  :macros
  {"progress" "<progress value=\"$1\" max=\"100\" />"
-  "toc" "{{renderer :tocgen, $1, $2}}"}
+  "toc" "{{renderer :tocgen, $1, $2, $3}}"}
 ```
 
 ## 使用示例 (Examples)
@@ -54,6 +54,10 @@ You can specify how many levels to generate.
 You can also create a TOC for a block, just paste its reference in.
 {{{toc ((block-reference))}}}
 {{{toc ((block-reference)), 2}}}
+
+如果你想在TOC中只包含H1-Hn这种heading，即markdown的`#`至`######`，那么你可以再通过一个参数来指定。
+{{{toc [[page name]], 1, h}}}
+{{{toc ((block-reference)), 1, h}}}
 ```
 
 ## 用户配置 (User configs)
@@ -62,7 +66,8 @@ You can also create a TOC for a block, just paste its reference in.
 {
   "disabled": false,
   "defaultLevels": 1,
-  "defaultCollaped": false
+  "defaultCollaped": false,
+  "defaultHeadingType": "any"
 }
 ```
 
@@ -70,8 +75,10 @@ You can also create a TOC for a block, just paste its reference in.
 
 - `defaultLevels`: 默认创建目录的级数，创建目录时没有指定级数时会使用此设置。
 - `defaultCollapsed`: 默认目录是否为折叠状态。
+- `defaultHeadingType`: 默认识别的标题类型。可以指定`any`，代表任何块都可作为标题识别；`h`代表仅 H1-Hn 块可作为标题识别。
 
 There are a couple of user settings available when you access the plugin settings from Logseq's plugins page. Please refer to the source block above (Default values are given in the source block).
 
 - `defaultLevels`: It defines how many levels a TOC contains by default if not specified when the TOC is created.
 - `defaultCollapsed`: It defines whether TOC is collapsed by default.
+- `defaultHeadingType`: It defines what kind of blocks can be recognized as a heading. `any` means that any block will do；`h` means that only H1-Hn blocks are accepted as headings.
