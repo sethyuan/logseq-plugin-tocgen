@@ -29,7 +29,7 @@ export default function Block({ root, block, levels }) {
   }
 
   // Hide empty blocks and render/macro blocks.
-  if (!block.content || /^\s*{{/.test(block.content)) return null
+  if (!content || /^\s*{{/.test(content)) return null
 
   return (
     <>

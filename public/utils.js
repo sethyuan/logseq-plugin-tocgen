@@ -1,4 +1,6 @@
 export async function parseContent(content) {
+  content = content.replace(/---\n(-(?!--)|[^-])*\n---\n?/g, "")
+
   // Replace block refs into their content
   let match
   while ((match = /\(\(([^\)]+)\)\)/d.exec(content)) != null) {
@@ -11,8 +13,8 @@ export async function parseContent(content) {
     )}`
   }
 
-  // Remove properties. TODO
-  content = content.replace(/\n[^:]+:: [^\n]+/g, "")
+  // Remove properties.
+  content = content.replace(/(^|\n)[^:]+:: [^\n]+/g, "")
 
   // Remove heading markup.
   content = content.replace(/^#+\s*/, "")
@@ -20,5 +22,5 @@ export async function parseContent(content) {
   // Remove page refs
   content = content.replace(/\[\[([^\]]+)\]\]/g, "$1")
 
-  return content
+  return content.trim()
 }
