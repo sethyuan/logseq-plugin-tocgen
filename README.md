@@ -56,6 +56,7 @@ You can also create a TOC for a block, just paste its reference in.
 {{{toc ((block-reference)), 2}}}
 
 如果你想在TOC中只包含H1-Hn这种heading，即markdown的`#`至`######`，那么你可以再通过一个参数来指定。
+If you want to include only H1-Hn headings, that is, `#` to `######` in markdown, you need to use a third argument.
 {{{toc [[page name]], 1, h}}}
 {{{toc ((block-reference)), 1, h}}}
 ```
