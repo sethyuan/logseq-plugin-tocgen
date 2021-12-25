@@ -62,7 +62,7 @@ export default function Block({ root, block, levels, headingType }) {
               root={root}
               block={subBlock}
               levels={levels}
-              headingType={={headingType}}
+              headingType={headingType}
             />
           ))}
         </div>
