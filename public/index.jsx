@@ -4,6 +4,8 @@ import ConfigProvider from "./comps/ConfigProvider.jsx"
 import TocGen from "./comps/TocGen.jsx"
 import { HeadingTypes } from "./utils.js"
 
+const observers = {}
+
 async function main() {
   logseq.App.onMacroRendererSlotted(tocRenderer)
 
@@ -41,10 +43,16 @@ async function main() {
     }
   `)
 
+  logseq.beforeunload(() => {
+    for (const observer of Object.values(observers)) {
+      observer?.disconnect()
+    }
+  })
+
   console.log("#tocgen loaded")
 }
 
-async function tocRenderer({ slot, payload: { arguments: args } }) {
+async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const [type] = args
   if (type !== ":tocgen") return
 
@@ -62,7 +70,7 @@ async function tocRenderer({ slot, payload: { arguments: args } }) {
     !args[3] || args[3] === "$3"
       ? logseq.settings?.defaultHeadingType ?? "any"
       : args[3].trim()
-  const id = `kef-toc-${name}-${levels}-${headingType}`
+  const id = `kef-toc-${name}-${levels}-${headingType}-${uuid}`
 
   if (!name) {
     logseq.provideUI({
@@ -151,32 +159,33 @@ async function observeAndGenerate(id, root, levels, headingType, lang) {
     return true
   }
 
-  const observer = new MutationObserver(async (mutationList) => {
-    for (const mutation of mutationList) {
-      if (mutation.removedNodes.length > 0 && !rootEl.isConnected) {
-        observer.disconnect()
-        return
+  if (observers[id] == null) {
+    const observer = new MutationObserver(async (mutationList) => {
+      for (const mutation of mutationList) {
+        if (mutation.removedNodes.length > 0 && !rootEl.isConnected) {
+          observer.disconnect()
+          observers[id] = undefined
+          return
+        }
+
+        for (const node of mutation.addedNodes) {
+          if (await renderIfPageBlock(node)) return
+        }
       }
+    })
+    observers[id] = observer
 
-      for (const node of mutation.addedNodes) {
-        if (await renderIfPageBlock(node)) return
-      }
-    }
-  })
-
-  observer.observe(parent.document.body, {
-    subtree: true,
-    childList: true,
-  })
-
-  logseq.beforeunload(() => {
-    observer.disconnect()
-  })
+    observer.observe(parent.document.body, {
+      subtree: true,
+      childList: true,
+    })
+  }
 
   const blocks =
     root.page == null
       ? await logseq.Editor.getPageBlocksTree(root.name)
       : root.children
+
   render(
     <ConfigProvider lang={lang}>
       <TocGen
