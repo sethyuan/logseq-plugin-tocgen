@@ -45,7 +45,7 @@ export default function Block({ root, block, levels, headingType }) {
             <Arrow style={{ transform: collapsed ? null : "rotate(90deg)" }} />
           </button>
         )}
-        <span class="kef-tocgen-into" onClick={goInto}>
+        <span class="kef-tocgen-into inline" onClick={goInto}>
           {content}
         </span>
         {root.page == null && (

@@ -56,6 +56,11 @@ lower-case@^2.0.2:
   dependencies:
     tslib "^2.0.3"
 
+marked@^4.0.8:
+  version "4.0.8"
+  resolved "https://registry.npmmirror.com/marked/download/marked-4.0.8.tgz#ef127626ac65786460f9420d57cc8d5ffdcacbed"
+  integrity sha512-dkpJMIlJpc833hbjjg8jraw1t51e/eKDoG8TFOgc5O0Z77zaYKigYekTDop5AplRoKFGIaoazhYEhGkMtU3IeA==
+
 ms@2.1.2:
   version "2.1.2"
   resolved "https://registry.npmmirror.com/ms/download/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"

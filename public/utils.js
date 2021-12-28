@@ -1,7 +1,13 @@
+import { parse } from "./marked-renderer.js"
+
 export async function parseContent(content) {
+  // Remove front matter.
   content = content.replace(/---\n(-(?!--)|[^-])*\n---\n?/g, "")
 
-  // Replace block refs into their content
+  // Handle markdown.
+  content = parse(content)
+
+  // Replace block refs into their content.
   let match
   while ((match = /\(\(([^\)]+)\)\)/d.exec(content)) != null) {
     const [start, end] = match.indices[0]
@@ -15,9 +21,6 @@ export async function parseContent(content) {
 
   // Remove properties.
   content = content.replace(/\b[^:]+:: [^\n]+/g, "")
-
-  // Remove heading markup.
-  content = content.replace(/^#+\s*/, "")
 
   // Remove page refs
   content = content.replace(/\[\[([^\]]+)\]\]/g, "$1")
