@@ -5,7 +5,9 @@ import { ConfigContext } from "./ConfigProvider.jsx"
 
 export default function TocGen({ root, blocks, levels, headingType }) {
   const { lang } = useContext(ConfigContext)
-  const [rootName, setRootName] = useState(root.page == null ? root.name : "")
+  const [rootName, setRootName] = useState(
+    root.page == null ? root.originalName : "",
+  )
 
   useEffect(() => {
     if (root.page != null) {
