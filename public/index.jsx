@@ -70,7 +70,10 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     !args[3] || args[3] === "$3"
       ? logseq.settings?.defaultHeadingType ?? "any"
       : args[3].trim()
-  const id = `kef-toc-${name}-${levels}-${headingType}-${uuid}`
+  const id = `kef-toc-${name.replace(
+    "/",
+    "_",
+  )}-${levels}-${headingType}-${uuid}`
 
   if (!name) {
     logseq.provideUI({
