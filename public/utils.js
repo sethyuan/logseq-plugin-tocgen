@@ -27,7 +27,23 @@ export async function parseContent(content) {
   // Remove page refs
   content = content.replace(/\[\[([^\]]+)\]\]/g, "$1")
 
+  // Remove html escape characters. For exmaple: "&amp;"
+  content = htmlDecode(content)
+
   return content.trim()
+}
+
+function htmlDecode(str) {
+  if (str.length === 0) {
+    return "";
+  }
+
+  return str.replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#39;/g, "\'")
+    .replace(/&quot;/g, "\"");
 }
 
 export const HeadingTypes = {
