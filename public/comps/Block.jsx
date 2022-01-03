@@ -40,7 +40,7 @@ export default function Block({ root, block, levels, headingType }) {
     <>
       <div class="kef-tocgen-block">
         {(block.level === 1 ||
-          (block.level < levels && block.children.length > 0)) && (
+          (block.level < levels && (headingType === HeadingTypes.h ? block.children.filter(b => b.content.startsWith("#")).length > 0 : block.children.length > 0))) && (
           <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
             <Arrow style={{ transform: collapsed ? null : "rotate(90deg)" }} />
           </button>
