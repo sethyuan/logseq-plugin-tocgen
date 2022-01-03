@@ -7,7 +7,7 @@ export async function parseContent(content) {
   // Handle markdown.
   content = parse(content)
 
-  // Replace block refs into their content.
+  // Replace block refs with their content.
   let match
   while ((match = /\(\(([^\)]+)\)\)/d.exec(content)) != null) {
     const [start, end] = match.indices[0]
@@ -20,7 +20,7 @@ export async function parseContent(content) {
   }
 
   // Remove properties.
-  content = content.replace(/\b[^:]+:: [^\n]+/g, "")
+  content = content.replace(/\b[^:\n]+:: [^\n]+/g, "")
 
   // Remove page refs
   content = content.replace(/\[\[([^\]]+)\]\]/g, "$1")

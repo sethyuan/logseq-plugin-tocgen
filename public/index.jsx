@@ -7,8 +7,6 @@ import { HeadingTypes } from "./utils.js"
 const observers = {}
 
 async function main() {
-  logseq.App.onMacroRendererSlotted(tocRenderer)
-
   logseq.provideStyle(`
     .kef-tocgen-page {
       cursor: pointer;
@@ -42,6 +40,15 @@ async function main() {
       margin-right: 3px;
     }
   `)
+
+  logseq.App.onMacroRendererSlotted(tocRenderer)
+
+  logseq.Editor.registerSlashCommand("Table of Contents", async () => {
+    await logseq.Editor.insertAtEditingCursor("{{renderer :tocgen, }}")
+    const input = parent.document.activeElement
+    const pos = input.selectionStart - 2
+    input.setSelectionRange(pos, pos)
+  })
 
   logseq.beforeunload(() => {
     for (const observer of Object.values(observers)) {
