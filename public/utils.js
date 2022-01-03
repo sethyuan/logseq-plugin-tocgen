@@ -19,6 +19,8 @@ export async function parseContent(content) {
     )}`
   }
 
+  // Remove collapsed property.
+  content = content.replace(/collapsed:: [^\n]+/g, "")
   // Remove properties.
   content = content.replace(/\b[^:\n]+:: [^\n]+/g, "")
 
