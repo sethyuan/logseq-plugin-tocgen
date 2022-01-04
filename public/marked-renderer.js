@@ -6,7 +6,7 @@ function htmlDecode(str) {
   }
 
   return str.replace(
-    /&(#[0-9]*|amp|lt|gt|nbsp|quot|copyright);/g,
+    /&(#[0-9]*|amp|lt|gt|nbsp|quot|copy|trade);/g,
     (_, code) => {
       switch (code) {
         case "amp":
@@ -35,12 +35,12 @@ const renderer = {
   code: () => "",
   blockquote: (quote) => quote,
   html: (html) => html,
-  heading: (text, _level, _raw) => text,
+  heading: (text, level, raw) => text,
   hr: () => "",
   list: () => "",
   listitem: () => "",
   checkbox: () => "",
-  paragraph: (text) => htmlDecode(text),
+  paragraph: (text) => text,
   table: () => "",
   tablerow: () => "",
   tablecell: () => "",
@@ -53,7 +53,7 @@ const renderer = {
   del: (text) => text,
   link: (href, title, text) => text,
   image: (href, title, text) => text,
-  text: (text) => text,
+  text: (text) => htmlDecode(text),
 }
 
 marked.use({ renderer })
