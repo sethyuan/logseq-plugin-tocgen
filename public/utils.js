@@ -4,6 +4,9 @@ export async function parseContent(content) {
   // Remove front matter.
   content = content.replace(/---\n(-(?!--)|[^-])*\n---\n?/g, "")
 
+  // Remove properties.
+  content = content.replace(/\b[^:\n]+:: [^\n]+/g, "")
+
   // Handle markdown.
   content = parse(content)
 
@@ -19,11 +22,6 @@ export async function parseContent(content) {
     )}`
   }
 
-  // Remove collapsed property.
-  content = content.replace(/collapsed:: [^\n]+/g, "")
-  // Remove properties.
-  content = content.replace(/\b[^:\n]+:: [^\n]+/g, "")
-
   // Remove page refs
   content = content.replace(/\[\[([^\]]+)\]\]/g, "$1")
 
@@ -35,15 +33,16 @@ export async function parseContent(content) {
 
 function htmlDecode(str) {
   if (str.length === 0) {
-    return "";
+    return ""
   }
 
-  return str.replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&#39;/g, "\'")
-    .replace(/&quot;/g, "\"");
+  return str
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&nbsp;", " ")
+    .replaceAll("&#39;", "'")
+    .replaceAll("&quot;", '"')
 }
 
 export const HeadingTypes = {

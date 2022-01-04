@@ -28,6 +28,16 @@ export default function Block({ root, block, levels, headingType }) {
     setCollapsed((v) => !v)
   }
 
+  function arrowShouldCollapse() {
+    return (
+      collapsed &&
+      block.level < levels &&
+      (headingType === HeadingTypes.h
+        ? block.children.some((subblock) => subblock.content.startsWith("#"))
+        : block.children.length > 0)
+    )
+  }
+
   // Hide empty blocks and render/macro blocks.
   if (
     !content ||
@@ -39,12 +49,13 @@ export default function Block({ root, block, levels, headingType }) {
   return (
     <>
       <div class="kef-tocgen-block">
-        {(block.level === 1 ||
-          (block.level < levels && (headingType === HeadingTypes.h ? block.children.filter(b => b.content.startsWith("#")).length > 0 : block.children.length > 0))) && (
-          <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
-            <Arrow style={{ transform: collapsed ? null : "rotate(90deg)" }} />
-          </button>
-        )}
+        <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
+          <Arrow
+            style={{
+              transform: arrowShouldCollapse() ? null : "rotate(90deg)",
+            }}
+          />
+        </button>
         <span class="kef-tocgen-into inline" onClick={goInto}>
           {content}
         </span>
