@@ -1,10 +1,13 @@
 import "@logseq/libs"
 import { render } from "preact"
+import { debounce } from "rambdax"
 import ConfigProvider from "./comps/ConfigProvider.jsx"
 import TocGen from "./comps/TocGen.jsx"
 import { HeadingTypes } from "./utils.js"
 
 const observers = {}
+
+const backTopIcon = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4076" width="200" height="200"><path d="M526.848 202.24c-4.096-4.096-9.216-6.144-14.848-6.144s-11.264 2.048-14.848 6.144L342.016 356.864c-8.192 8.192-8.192 21.504 0 30.208 8.192 8.192 21.504 8.192 30.208 0L512 247.296l139.776 139.776c4.096 4.096 9.728 6.144 14.848 6.144 5.632 0 10.752-2.048 14.848-6.144 8.192-8.192 8.192-21.504 0-30.208L526.848 202.24zM116.224 595.968h90.624v231.936h42.496V595.968h90.624v-42.496H115.712v42.496z m458.24-42.496h-112.64c-13.824 0-27.136 5.12-37.376 15.36s-15.36 24.064-15.36 37.376v168.448c0 13.824 5.12 27.136 15.36 37.376s24.064 15.36 37.376 15.36h112.64c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376V606.208c0-13.824-5.12-27.136-15.36-37.376s-23.552-15.36-37.376-15.36z m10.752 221.696c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072h-112.64c-2.048 0-5.12-0.512-7.68-3.072s-3.072-5.632-3.072-7.68V606.72c0-2.048 0.512-5.12 3.072-7.68s5.632-3.072 7.68-3.072h112.64c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v168.448z m307.2-205.824c-10.24-10.24-24.064-15.36-37.376-15.36H709.632v274.432h42.496v-120.32H855.04c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376v-48.128c0-14.336-5.12-27.648-15.36-37.888z m-27.136 84.992c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072H751.104v-69.12H855.04c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v47.616h-0.512z" p-id="4077"></path></svg>`
 
 async function main() {
   logseq.provideStyle(`
@@ -39,6 +42,23 @@ async function main() {
       padding-right: 4px;
       margin-right: 3px;
     }
+
+    .kef-tocgen-backtop {
+      position: fixed;
+      bottom: 55px;
+      right: 23px;
+      background: var(--ls-secondary-background-color);
+      border-radius: 50%;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+    }
+    .kef-tocgen-icon-backtop {
+      width: 35px;
+      height: 35px;
+      fill: var(--ls-primary-text-color);
+      padding: 4px;
+    }
   `)
 
   logseq.App.onMacroRendererSlotted(tocRenderer)
@@ -50,10 +70,25 @@ async function main() {
     input.setSelectionRange(pos, pos)
   })
 
+  if (!logseq.settings?.hideBackTop) {
+    logseq.provideUI({
+      key: "kef-tocgen-backtop",
+      path: "#main-container",
+      template: `<a class="kef-tocgen-backtop" data-on-click="backtop">${backTopIcon}<a/>`,
+    })
+  }
+
+  const mainContainer = parent.document.getElementById("main-container")
+  if (!logseq.settings?.hideBackTop) {
+    mainContainer.addEventListener("scroll", scrollHandler)
+  }
+
   logseq.beforeunload(() => {
     for (const observer of Object.values(observers)) {
       observer?.disconnect()
     }
+
+    mainContainer.removeEventListener("scroll", scrollHandler)
   })
 
   console.log("#tocgen loaded")
@@ -221,4 +256,33 @@ function getBlockEl(node) {
   return node === body ? null : node
 }
 
-logseq.ready(main).catch(console.error)
+const scrollHandler = debounce((e) => {
+  const scrollTop = e.target.scrollTop
+  const backtop = parent.document.querySelector(".kef-tocgen-backtop")
+  if (scrollTop >= 300) {
+    if (backtop.style.display !== "block") {
+      backtop.style.display = "block"
+      requestAnimationFrame(() => {
+        backtop.style.opacity = 1
+      })
+    }
+  } else {
+    if (backtop.style.display === "block") {
+      backtop.style.opacity = 0
+      setTimeout(() => {
+        backtop.style.display = ""
+      }, 200)
+    }
+  }
+}, 50)
+
+function createModel() {
+  return {
+    backtop() {
+      const mainContainer = parent.document.getElementById("main-container")
+      mainContainer.scroll({ top: 0 })
+    },
+  }
+}
+
+logseq.ready(createModel(), main).catch(console.error)
