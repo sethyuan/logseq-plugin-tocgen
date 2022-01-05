@@ -1,6 +1,6 @@
 # logseq-plugin-tocgen
 
-在任何地方生成任一页面/块的目录，通过它你可以快速访问页面/块内容。同时提供了滚动回页面上部的功能。
+在任何地方生成任一页面/块的目录，通过它你可以快速访问页面/块内容。同时提供了滚动回页面顶部的功能。
 
 Generate a TOC of any page/block anywhere and quickly access the page/block's content. A back to top button is also provided.
 
@@ -8,57 +8,27 @@ Generate a TOC of any page/block anywhere and quickly access the page/block's co
 
 ![demo](./demo.gif)
 
-## 设置宏 (Setup macro)
-
-为了让插件更方便使用，你可能会希望参照如下说明来创建一个宏。
-
-You also might want to follow the steps below to setup a macro to help facilitate the use of the plugin.
-
-![open config.edn](./open_config_edn.jpg)
-
-找到定义`macros`的位置，参照如下代码进行配置（其中的`progress`宏是可以不要的）：
-
-Find where `macros` are configured, make adjustments according the following code (The `progress` macro is not needed):
-
-```clojure
- ;; Macros replace texts and will make you more productive.
- ;; For example:
- ;; Add this to the macros below:
- ;; {"poem" "Rose is $1, violet's $2. Life's ordered: Org assists you."}
- ;; input "{{{poem red,blue}}}"
- ;; becomes
- ;; Rose is red, violet's blue. Life's ordered: Org assists you.
- :macros
- {"progress" "<progress value=\"$1\" max=\"100\" />"
-  "toc" "{{renderer :tocgen, $1, $2, $3}}"}
-```
-
 ## 使用示例 (Examples)
-
-这里给出的创建 TOC 的示例都是基于宏的，如果你还没有设置过，请先参照上面说明进行设置。
-
-Examples given here are based on macros, if you haven't already setup the macro, please do so following the previous section.
 
 ```
 为某一页面创建一个TOC，可以用 "[[" 辅助查找想要的页面。
 Create a TOC for a page, you can use "[[" to help find the page.
-{{{toc pagename}}}
-{{{toc [[pagename]]}}}
-
-可以指定要生成几级。
-You can specify how many levels to generate.
-{{{toc pagename, 2}}}
-{{{toc [[pagename]], 2}}}
+{{renderer :tocgen, pagename}}
+{{renderer :tocgen, [[pagename]]}}
 
 你也可以为某一页面块创建一个TOC，直接将块引用粘贴进来就好。
 You can also create a TOC for a block, just paste its reference in.
-{{{toc ((block-reference))}}}
-{{{toc ((block-reference)), 2}}}
+{{renderer :tocgen, ((block-reference))}}
+
+可以指定要生成几级。
+You can specify how many levels to generate.
+{{renderer :tocgen, [[pagename]], 2}}
+{{renderer :tocgen, ((block-reference)), 2}}
 
 如果你想在TOC中只包含H1-Hn这种heading，即markdown的`#`至`######`，那么你可以再通过一个参数来指定。
 If you want to include only H1-Hn headings, that is, `#` to `######` in markdown, you need to use a third argument.
-{{{toc [[page name]], 1, h}}}
-{{{toc ((block-reference)), 1, h}}}
+{{renderer :tocgen, [[page name]], 1, h}}
+{{renderer :tocgen, ((block-reference)), 1, h}}
 ```
 
 ## 用户配置 (User configs)
@@ -86,3 +56,19 @@ There are a couple of user settings available when you access the plugin setting
 - `defaultCollapsed`: It defines whether TOC is collapsed by default.
 - `defaultHeadingType`: It defines what kind of blocks can be recognized as a heading. `any` means that any block will do；`h` means that only H1-Hn blocks are accepted as headings.
 - `hideBackTop`: You can use this setting to disable the "Back to Top" functionality.
+
+## 自定义样式 (Syle Customization)
+
+你可以通过以下两个 CSS 类来自定义样式，`kef-tocgen-page` 对应页面，`kef-tocgen-block` 对应块。参照 Logseq 自定义样式的文档操作，将内容放在`custom.css`中即可。
+
+You can customize styles using the following two CSS classes, `kef-tocgen-page` for page, `kef-tocgen-block` for block. Refer to Logseq's document for how to customize styles, place your modifications in `custom.css`.
+
+```css
+.kef-tocgen-page {
+  cursor: pointer;
+  line-height: 2;
+}
+.kef-tocgen-block {
+  line-height: 1.7;
+}
+```

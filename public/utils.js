@@ -34,3 +34,15 @@ export const HeadingTypes = {
   // Accepts only H1..Hn as headings
   h: "h",
 }
+
+export async function hash(text) {
+  const bytes = new TextEncoder().encode(text)
+  const hashedArray = Array.from(
+    new Uint8Array(await crypto.subtle.digest("SHA-1", bytes)),
+  )
+  const hashed = hashedArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+  console.log(hashed)
+  return hashed
+}
