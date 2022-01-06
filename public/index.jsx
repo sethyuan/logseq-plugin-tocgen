@@ -76,6 +76,7 @@ async function main() {
     }
     .kef-tocgen-backtop:hover {
       opacity: 1 !important;
+      box-shadow: 0px 2px 4px 0px #ccc;
     }
     .kef-tocgen-icon-backtop {
       width: 35px;

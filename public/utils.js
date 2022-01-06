@@ -43,6 +43,5 @@ export async function hash(text) {
   const hashed = hashedArray
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("")
-  console.log(hashed)
   return hashed
 }
