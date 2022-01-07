@@ -7,9 +7,11 @@ import { hash, HeadingTypes } from "./utils.js"
 
 const observers = {}
 let resizeObserver = null
+let pageObserver = null
 
 const BACK_TOP_ICON = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4076" width="200" height="200"><path d="M526.848 202.24c-4.096-4.096-9.216-6.144-14.848-6.144s-11.264 2.048-14.848 6.144L342.016 356.864c-8.192 8.192-8.192 21.504 0 30.208 8.192 8.192 21.504 8.192 30.208 0L512 247.296l139.776 139.776c4.096 4.096 9.728 6.144 14.848 6.144 5.632 0 10.752-2.048 14.848-6.144 8.192-8.192 8.192-21.504 0-30.208L526.848 202.24zM116.224 595.968h90.624v231.936h42.496V595.968h90.624v-42.496H115.712v42.496z m458.24-42.496h-112.64c-13.824 0-27.136 5.12-37.376 15.36s-15.36 24.064-15.36 37.376v168.448c0 13.824 5.12 27.136 15.36 37.376s24.064 15.36 37.376 15.36h112.64c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376V606.208c0-13.824-5.12-27.136-15.36-37.376s-23.552-15.36-37.376-15.36z m10.752 221.696c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072h-112.64c-2.048 0-5.12-0.512-7.68-3.072s-3.072-5.632-3.072-7.68V606.72c0-2.048 0.512-5.12 3.072-7.68s5.632-3.072 7.68-3.072h112.64c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v168.448z m307.2-205.824c-10.24-10.24-24.064-15.36-37.376-15.36H709.632v274.432h42.496v-120.32H855.04c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376v-48.128c0-14.336-5.12-27.648-15.36-37.888z m-27.136 84.992c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072H751.104v-69.12H855.04c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v47.616h-0.512z" p-id="4077"></path></svg>`
 const ICON_TRANSITION_DURATION = 200
+const CURRENT = "*"
 
 const scrollHandler = debounce((e) => {
   const scrollTop = e.target.scrollTop
@@ -32,6 +34,8 @@ const scrollHandler = debounce((e) => {
 }, 50)
 
 async function main() {
+  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+
   logseq.provideStyle(`
     .kef-tocgen-page {
       cursor: pointer;
@@ -63,6 +67,9 @@ async function main() {
     .kef-tocgen-arrow {
       padding-right: 4px;
       margin-right: 3px;
+    }
+    .kef-tocgen-noactivepage::before {
+      content: "${lang === "zh-CN" ? "无活动页面" : "No active page"}";
     }
 
     .kef-tocgen-backtop {
@@ -109,21 +116,24 @@ async function main() {
       }" class="kef-tocgen-backtop" data-on-click="backtop">${BACK_TOP_ICON}</a>`,
     })
 
-    resizeObserver = new ResizeObserver(
-      throttle((entries) => {
-        const backtop = parent.document.querySelector(".kef-tocgen-backtop")
-        backtop.style.left = `${entries[0]?.contentRect.right - 57 ?? 0}px`
-      }, 16),
-    )
-    resizeObserver.observe(mainContainer)
-    mainContainer.addEventListener("scroll", scrollHandler)
+    // Let backtop element get generated first.
+    setTimeout(() => {
+      resizeObserver = new ResizeObserver(
+        throttle((entries) => {
+          const backtop = parent.document.querySelector(".kef-tocgen-backtop")
+          backtop.style.left = `${entries[0]?.contentRect.right - 57 ?? 0}px`
+        }, 16),
+      )
+      resizeObserver.observe(mainContainer)
+      mainContainer.addEventListener("scroll", scrollHandler)
+    }, 0)
   }
 
   logseq.beforeunload(() => {
+    pageObserver?.disconnect()
     for (const observer of Object.values(observers)) {
       observer?.disconnect()
     }
-
     mainContainer.removeEventListener("scroll", scrollHandler)
     resizeObserver?.disconnect()
   })
@@ -138,11 +148,20 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
   const nameArg = !args[1] || args[1] === "$1" ? "" : args[1].trim()
   const isBlock = nameArg?.startsWith("((")
-  let name =
-    (isBlock
-      ? nameArg?.replace(/^\(\((.*)\)\)\s*$/, "$1")
-      : nameArg?.replace(/^\[\[(.*)\]\]\s*$/, "$1")) ||
-    (await logseq.Editor.getCurrentPage()).name
+  const name =
+    nameArg === CURRENT
+      ? (await logseq.Editor.getCurrentPage())?.name
+      : (isBlock
+          ? nameArg?.replace(/^\(\((.*)\)\)\s*$/, "$1")
+          : nameArg?.replace(/^\[\[(.*)\]\]\s*$/, "$1")) ||
+        (
+          await logseq.Editor.getPage(
+            (
+              await logseq.Editor.getBlock(uuid)
+            ).page.id,
+          )
+        ).name
+
   const levels =
     !args[2] || args[2] === "$2"
       ? logseq.settings?.defaultLevels ?? 1
@@ -166,11 +185,14 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     return
   }
 
-  const root = isBlock
-    ? await logseq.Editor.getBlock(name, { includeChildren: true })
-    : await logseq.Editor.getPage(name)
+  const root =
+    name == null
+      ? null
+      : isBlock
+      ? await logseq.Editor.getBlock(name, { includeChildren: true })
+      : await logseq.Editor.getPage(name)
 
-  if (root == null) {
+  if (name != null && root == null) {
     logseq.provideUI({
       key: id,
       slot,
@@ -188,7 +210,18 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   })
 
   // Let div root element get generated first.
-  setTimeout(() => observeAndGenerate(id, root, levels, headingType, lang), 0)
+  setTimeout(async () => {
+    if (root != null) {
+      await observeAndGenerate(id, root, levels, headingType, lang)
+    }
+    if (nameArg === CURRENT) {
+      observePageViewChange(id, levels, headingType, lang)
+      if (name == null) {
+        const rootEl = parent.document.getElementById(id)
+        render(<div class="kef-tocgen-noactivepage" />, rootEl)
+      }
+    }
+  }, 0)
 }
 
 async function observeAndGenerate(id, root, levels, headingType, lang) {
@@ -268,6 +301,34 @@ async function observeAndGenerate(id, root, levels, headingType, lang) {
     </ConfigProvider>,
     rootEl,
   )
+}
+
+function observePageViewChange(id, levels, headingType, lang) {
+  const rootEl = parent.document.getElementById(id)
+
+  pageObserver = new MutationObserver(async (mutationList) => {
+    for (const mutation of mutationList) {
+      if (mutation.removedNodes.length > 0 && !rootEl.isConnected) {
+        pageObserver.disconnect()
+        return
+      }
+
+      for (const node of mutation.addedNodes) {
+        if (node.querySelector?.(".page-title")) {
+          const root = await logseq.Editor.getCurrentPage()
+          observers[id]?.disconnect()
+          observers[id] = undefined
+          await observeAndGenerate(id, root, levels, headingType, lang)
+          break
+        }
+      }
+    }
+  })
+
+  pageObserver.observe(parent.document.body, {
+    subtree: true,
+    childList: true,
+  })
 }
 
 function getBlockEl(node) {

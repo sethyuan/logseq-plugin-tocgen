@@ -6,7 +6,7 @@ import { ConfigContext } from "./ConfigProvider.jsx"
 export default function TocGen({ root, blocks, levels, headingType }) {
   const { lang } = useContext(ConfigContext)
   const [rootName, setRootName] = useState(
-    root.page == null ? root.originalName : "",
+    root.page == null ? root.originalName ?? root.name : "",
   )
 
   useEffect(() => {
@@ -14,11 +14,13 @@ export default function TocGen({ root, blocks, levels, headingType }) {
       ;(async () => {
         setRootName(await parseContent(root.content))
       })()
+    } else {
+      setRootName(root.originalName ?? root.name)
     }
   }, [root])
 
   function gotoPage() {
-    if (root == null) {
+    if (root.page == null) {
       logseq.Editor.scrollToBlockInPage(root.name)
     } else {
       logseq.Editor.scrollToBlockInPage(root.uuid)
