@@ -89,10 +89,11 @@ async function main() {
   logseq.App.onMacroRendererSlotted(tocRenderer)
 
   logseq.Editor.registerSlashCommand("Table of Contents", async () => {
-    await logseq.Editor.insertAtEditingCursor("{{renderer :tocgen, }}")
-    const input = parent.document.activeElement
-    const pos = input.selectionStart - 2
-    input.setSelectionRange(pos, pos)
+    await logseq.Editor.insertAtEditingCursor("{{renderer :tocgen }}")
+    // NOTE: Leave this cursor moving code for future reference.
+    // const input = parent.document.activeElement
+    // const pos = input.selectionStart - 2
+    // input.setSelectionRange(pos, pos)
   })
 
   const mainContainer = parent.document.getElementById("main-container")
@@ -132,14 +133,16 @@ async function main() {
 
 async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const [type] = args
-  if (type !== ":tocgen") return
+  if (type.trim() !== ":tocgen") return
 
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
   const nameArg = !args[1] || args[1] === "$1" ? "" : args[1].trim()
   const isBlock = nameArg?.startsWith("((")
-  const name = isBlock
-    ? nameArg?.replace(/^\(\((.+)\)\)\s*$/, "$1")
-    : nameArg?.replace(/^\[\[(.+)\]\]\s*$/, "$1")
+  let name =
+    (isBlock
+      ? nameArg?.replace(/^\(\((.*)\)\)\s*$/, "$1")
+      : nameArg?.replace(/^\[\[(.*)\]\]\s*$/, "$1")) ||
+    (await logseq.Editor.getCurrentPage()).name
   const levels =
     !args[2] || args[2] === "$2"
       ? logseq.settings?.defaultLevels ?? 1
@@ -150,16 +153,6 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
       : args[3].trim()
   const id = `kef-toc-${await hash(name)}-${levels}-${headingType}-${uuid}`
 
-  if (!name) {
-    logseq.provideUI({
-      key: id,
-      slot,
-      template: `<div id="${id}" style="color:#f00">[${
-        lang === "zh-CN" ? "缺少页面/块名！" : "Missing page/block name!"
-      }]</div>`,
-    })
-    return
-  }
   if (HeadingTypes[headingType] == null) {
     logseq.provideUI({
       key: id,
