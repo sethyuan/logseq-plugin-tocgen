@@ -32,7 +32,8 @@ You can specify how many levels to generate.
 {{renderer :tocgen, ((block-reference)), 2}}
 
 如果你想在TOC中只包含H1-Hn这种heading，即markdown的`#`至`######`，那么你可以再通过一个参数来指定。
-If you want to include only H1-Hn headings, that is, `#` to `######` in markdown, you need to use a third argument.
+If you want to include only H1-Hn headings, that is, `#` to `######` in markdown,
+you need to use a third argument.
 {{renderer :tocgen, [[]], 1, h}}
 {{renderer :tocgen, [[page name]], 1, h}}
 {{renderer :tocgen, ((block-reference)), 1, h}}
@@ -87,5 +88,15 @@ You can customize styles using the following two CSS classes, `kef-tocgen-page` 
 }
 .kef-tocgen-block {
   line-height: 1.7;
+}
+```
+
+你也可以通过`kef-tocgen-noactivepage`来自定义动态 TOC（见使用示例）的内容与样式。
+
+You can also use `kef-tocgen-noactivepage` to customize dynamic TOC's (see Examples section above) content and style.
+
+```
+.kef-tocgen-noactivepage {
+  content: "🈚️";
 }
 ```
