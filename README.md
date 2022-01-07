@@ -91,9 +91,9 @@ You can customize styles using the following two CSS classes, `kef-tocgen-page` 
 }
 ```
 
-你也可以通过`kef-tocgen-noactivepage`来自定义动态 TOC（见使用示例）的内容与样式。
+你也可以通过`kef-tocgen-noactivepage`来自定义动态 TOC（见使用示例）在没有检测到活动页面时的内容与样式。
 
-You can also use `kef-tocgen-noactivepage` to customize dynamic TOC's (see Examples section above) content and style.
+You can also use `kef-tocgen-noactivepage` to customize dynamic TOC's (see Examples section above) content and style when no active page is detected.
 
 ```css
 .kef-tocgen-noactivepage {
