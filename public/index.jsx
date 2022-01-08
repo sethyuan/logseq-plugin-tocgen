@@ -1,6 +1,6 @@
 import "@logseq/libs"
 import { render } from "preact"
-import { debounce, throttle } from "rambdax"
+import { debounce } from "rambdax"
 import ConfigProvider from "./comps/ConfigProvider.jsx"
 import TocGen from "./comps/TocGen.jsx"
 import { hash, HeadingTypes } from "./utils.js"
@@ -74,7 +74,9 @@ async function main() {
 
     .kef-tocgen-backtop {
       position: fixed;
+      left: 0;
       bottom: 55px;
+      will-change: transform;
       background: var(--ls-secondary-background-color);
       border-radius: 50%;
       display: none;
@@ -118,13 +120,25 @@ async function main() {
 
     // Let backtop element get generated first.
     setTimeout(() => {
-      resizeObserver = new ResizeObserver(
-        throttle((entries) => {
-          const backtop = parent.document.querySelector(".kef-tocgen-backtop")
-          backtop.style.left = `${entries[0]?.contentRect.right - 57 ?? 0}px`
-        }, 16),
+      const backtop = parent.document.querySelector(".kef-tocgen-backtop")
+      const contentEl = parent.document.querySelector(
+        "div[data-is-global-graph-pages] > div:first-child",
       )
-      resizeObserver.observe(mainContainer)
+      if (contentEl) {
+        resizeObserver = new ResizeObserver(() => {
+          requestAnimationFrame(() => {
+            const contentElRect = contentEl.getBoundingClientRect()
+            const mainContainerRect = mainContainer.getBoundingClientRect()
+            backtop.style.transform = `translateX(${
+              contentElRect.right + 57 < mainContainerRect.right
+                ? contentElRect.right + 20
+                : mainContainerRect.right - 57
+            }px)`
+          })
+        })
+        resizeObserver.observe(mainContainer)
+        resizeObserver.observe(contentEl)
+      }
       mainContainer.addEventListener("scroll", scrollHandler)
     }, 0)
   }

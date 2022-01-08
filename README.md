@@ -96,7 +96,7 @@ You can customize styles using the following two CSS classes, `kef-tocgen-page` 
 You can also use `kef-tocgen-noactivepage` to customize dynamic TOC's (see Examples section above) content and style when no active page is detected.
 
 ```css
-.kef-tocgen-noactivepage {
+.kef-tocgen-noactivepage::before {
   content: "🈚️";
 }
 ```
