@@ -106,6 +106,9 @@ async function main() {
   })
 
   const mainContainer = parent.document.getElementById("main-container")
+  const mainContentContainer = parent.document.getElementById(
+    "main-content-container",
+  )
 
   if (!logseq.settings?.hideBackTop) {
     const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
@@ -128,15 +131,16 @@ async function main() {
         resizeObserver = new ResizeObserver(() => {
           requestAnimationFrame(() => {
             const contentElRect = contentEl.getBoundingClientRect()
-            const mainContainerRect = mainContainer.getBoundingClientRect()
+            const mainContentContainerRect =
+              mainContentContainer.getBoundingClientRect()
             backtop.style.transform = `translateX(${
-              contentElRect.right + 57 < mainContainerRect.right
+              contentElRect.right + 57 < mainContentContainerRect.right
                 ? contentElRect.right + 20
-                : mainContainerRect.right - 57
+                : mainContentContainerRect.right - 57
             }px)`
           })
         })
-        resizeObserver.observe(mainContainer)
+        resizeObserver.observe(mainContentContainer)
         resizeObserver.observe(contentEl)
       }
       mainContainer.addEventListener("scroll", scrollHandler)
