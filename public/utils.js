@@ -4,6 +4,9 @@ export async function parseContent(content) {
   // Remove front matter.
   content = content.replace(/---\n(-(?!--)|[^-])*\n---\n?/g, "")
 
+  // Use only the first line.
+  content = content.match(/.*/)[0]
+
   // Remove properties.
   content = content.replace(/\b[^:\n]+:: [^\n]+/g, "")
 
