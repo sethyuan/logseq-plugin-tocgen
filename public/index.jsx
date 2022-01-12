@@ -168,7 +168,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const isBlock = nameArg?.startsWith("((")
   const name =
     nameArg === CURRENT
-      ? (await logseq.Editor.getCurrentPage())?.name
+      ? await getCurrentPageName()
       : (isBlock
           ? nameArg?.replace(/^\(\((.*)\)\)\s*$/, "$1")
           : nameArg?.replace(/^\[\[(.*)\]\]\s*$/, "$1")) ||
@@ -188,7 +188,9 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     !args[3] || args[3] === "$3"
       ? logseq.settings?.defaultHeadingType ?? "any"
       : args[3].trim()
-  const id = `kef-toc-${await hash(name)}-${levels}-${headingType}-${uuid}`
+  const id = `kef-toc-${await hash(
+    name,
+  )}-${levels}-${headingType}-${uuid}-${slot}`
 
   if (HeadingTypes[headingType] == null) {
     logseq.provideUI({
@@ -225,6 +227,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     key: id,
     slot,
     template: `<div id="${id}"></div>`,
+    reset: true,
   })
 
   // Let div root element get generated first.
@@ -332,8 +335,15 @@ function observePageViewChange(id, levels, headingType, lang) {
       }
 
       for (const node of mutation.addedNodes) {
-        if (node.querySelector?.(".page-title")) {
-          const root = await logseq.Editor.getCurrentPage()
+        if (
+          node.classList &&
+          node.classList.contains("page") &&
+          node.classList.contains("relative")
+        ) {
+          let root = await logseq.Editor.getCurrentPage()
+          if (root.page != null) {
+            root = await logseq.Editor.getPage(root.page.id)
+          }
           observers[id]?.disconnect()
           observers[id] = undefined
           await observeAndGenerate(id, root, levels, headingType, lang)
@@ -359,6 +369,14 @@ function getBlockEl(node) {
     node = node.parentElement
   }
   return node === body ? null : node
+}
+
+async function getCurrentPageName() {
+  let page = await logseq.Editor.getCurrentPage()
+  if (page?.page != null) {
+    page = await logseq.Editor.getPage(page.page.id)
+  }
+  return page?.name
 }
 
 function createModel() {
