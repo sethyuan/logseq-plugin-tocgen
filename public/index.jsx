@@ -38,10 +38,10 @@ async function main() {
 
   logseq.provideStyle(`
     .kef-tocgen-page {
-      cursor: pointer;
       line-height: 2;
     }
-    .kef-tocgen-page:hover {
+    .kef-tocgen-page:hover > .inline {
+      cursor: pointer;
       color: var(--ls-link-ref-text-color);
     }
     .kef-tocgen-block {
