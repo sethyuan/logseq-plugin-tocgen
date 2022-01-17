@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "preact/hooks"
+import { useContext, useEffect, useMemo, useState } from "preact/hooks"
 import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
@@ -9,6 +9,13 @@ export default function Block({ root, block, levels, headingType }) {
     logseq.settings?.defaultCollapsed ?? false,
   )
   const { lang } = useContext(ConfigContext)
+  const pageName = useMemo(async () => {
+    if (root.page) {
+      return (await logseq.Editor.getPage(root.page.id)).name
+    } else {
+      return root.name
+    }
+  }, [root.name, root.page?.id])
 
   useEffect(() => {
     ;(async () => {
@@ -16,8 +23,8 @@ export default function Block({ root, block, levels, headingType }) {
     })()
   }, [block])
 
-  function goTo() {
-    logseq.Editor.scrollToBlockInPage(root.name, block.uuid)
+  async function goTo() {
+    logseq.Editor.scrollToBlockInPage(await pageName, block.uuid)
   }
 
   function goInto() {
@@ -59,11 +66,9 @@ export default function Block({ root, block, levels, headingType }) {
         <span class="kef-tocgen-into inline" onClick={goInto}>
           {content}
         </span>
-        {root.page == null && (
-          <button class="kef-tocgen-to" onClick={goTo}>
-            {lang === "zh-CN" ? "页面" : "page"}
-          </button>
-        )}
+        <button class="kef-tocgen-to" onClick={goTo}>
+          {lang === "zh-CN" ? "页面" : "page"}
+        </button>
       </div>
       {block.level < levels && !collapsed && (
         <div class="kef-tocgen-block-children">

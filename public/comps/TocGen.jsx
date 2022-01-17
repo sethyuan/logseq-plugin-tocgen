@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "preact/hooks"
+import { useContext, useEffect, useMemo, useState } from "preact/hooks"
 import { parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
@@ -6,27 +6,38 @@ import { ConfigContext } from "./ConfigProvider.jsx"
 
 export default function TocGen({ root, blocks, levels, headingType }) {
   const { lang } = useContext(ConfigContext)
-  const [rootName, setRootName] = useState(
+  const [name, setName] = useState(() =>
     root.page == null ? root.originalName ?? root.name : "",
   )
   const [collapsed, setCollapsed] = useState(false)
+  const pageName = useMemo(async () => {
+    if (root.page) {
+      return (await logseq.Editor.getPage(root.page.id)).name
+    } else {
+      return root.name
+    }
+  }, [root.name, root.page?.id])
 
   useEffect(() => {
     if (root.page != null) {
       ;(async () => {
-        setRootName(await parseContent(root.content))
+        setName(await parseContent(root.content))
       })()
     } else {
-      setRootName(root.originalName ?? root.name)
+      setName(root.originalName ?? root.name)
     }
   }, [root])
 
-  function gotoPage() {
+  function goTo() {
     if (root.page == null) {
       logseq.Editor.scrollToBlockInPage(root.name)
     } else {
       logseq.Editor.scrollToBlockInPage(root.uuid)
     }
+  }
+
+  async function goToPage() {
+    logseq.Editor.scrollToBlockInPage(await pageName, root.uuid)
   }
 
   function toggleCollapsed() {
@@ -43,7 +54,7 @@ export default function TocGen({ root, blocks, levels, headingType }) {
 
   return (
     <>
-      <div class="kef-tocgen-page" onClick={gotoPage}>
+      <div class="kef-tocgen-page">
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
           <Arrow
             style={{
@@ -51,7 +62,14 @@ export default function TocGen({ root, blocks, levels, headingType }) {
             }}
           />
         </button>
-        <span className="inline">{rootName}</span>
+        <span className="inline" onClick={goTo}>
+          {name}
+        </span>
+        {root.page != null && (
+          <button class="kef-tocgen-to" onClick={goToPage}>
+            {lang === "zh-CN" ? "页面" : "page"}
+          </button>
+        )}
       </div>
       {!collapsed && (
         <div className="kef-tocgen-block-children">
