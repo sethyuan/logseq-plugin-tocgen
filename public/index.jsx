@@ -233,10 +233,10 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   // Let div root element get generated first.
   setTimeout(async () => {
     if (root != null) {
-      await observeAndGenerate(id, root, levels, headingType, lang)
+      await observeAndGenerate(id, root, levels, headingType, lang, uuid)
     }
     if (nameArg === CURRENT) {
-      observePageViewChange(id, levels, headingType, lang)
+      observePageViewChange(id, levels, headingType, lang, uuid)
       if (name == null) {
         const rootEl = parent.document.getElementById(id)
         render(<div class="kef-tocgen-noactivepage" />, rootEl)
@@ -245,7 +245,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   }, 0)
 }
 
-async function observeAndGenerate(id, root, levels, headingType, lang) {
+async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
   const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
@@ -277,6 +277,7 @@ async function observeAndGenerate(id, root, levels, headingType, lang) {
           blocks={blocks}
           levels={levels}
           headingType={headingType}
+          uuid={uuid}
         />
       </ConfigProvider>,
       rootEl,
@@ -318,13 +319,14 @@ async function observeAndGenerate(id, root, levels, headingType, lang) {
         blocks={blocks}
         levels={levels}
         headingType={headingType}
+        uuid={uuid}
       />
     </ConfigProvider>,
     rootEl,
   )
 }
 
-function observePageViewChange(id, levels, headingType, lang) {
+function observePageViewChange(id, levels, headingType, lang, uuid) {
   const rootEl = parent.document.getElementById(id)
 
   pageObserver = new MutationObserver(async (mutationList) => {
@@ -346,7 +348,7 @@ function observePageViewChange(id, levels, headingType, lang) {
           }
           observers[id]?.disconnect()
           observers[id] = undefined
-          await observeAndGenerate(id, root, levels, headingType, lang)
+          await observeAndGenerate(id, root, levels, headingType, lang, uuid)
           break
         }
       }

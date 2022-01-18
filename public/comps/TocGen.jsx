@@ -4,7 +4,7 @@ import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
 
-export default function TocGen({ root, blocks, levels, headingType }) {
+export default function TocGen({ root, blocks, levels, headingType, uuid }) {
   const { lang } = useContext(ConfigContext)
   const [name, setName] = useState(() =>
     root.page == null ? root.originalName ?? root.name : "",
@@ -28,6 +28,14 @@ export default function TocGen({ root, blocks, levels, headingType }) {
     }
   }, [root])
 
+  function onClick(e) {
+    if (e.shiftKey) {
+      openInSidebar()
+    } else {
+      goTo()
+    }
+  }
+
   function goTo() {
     if (root.page == null) {
       logseq.Editor.scrollToBlockInPage(root.name)
@@ -42,6 +50,10 @@ export default function TocGen({ root, blocks, levels, headingType }) {
 
   function toggleCollapsed() {
     setCollapsed((v) => !v)
+  }
+
+  function openInSidebar() {
+    logseq.Editor.openInRightSidebar(uuid)
   }
 
   if (blocks == null) {
@@ -62,7 +74,7 @@ export default function TocGen({ root, blocks, levels, headingType }) {
             }}
           />
         </button>
-        <span className="inline" onClick={goTo}>
+        <span className="inline" onClick={onClick}>
           {name}
         </span>
         {root.page != null && (
