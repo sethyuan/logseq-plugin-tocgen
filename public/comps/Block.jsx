@@ -9,11 +9,11 @@ export default function Block({ root, block, levels, headingType }) {
     logseq.settings?.defaultCollapsed ?? false,
   )
   const { lang } = useContext(ConfigContext)
-  const pageName = useMemo(async () => {
+  const page = useMemo(async () => {
     if (root.page) {
-      return (await logseq.Editor.getPage(root.page.id)).name
+      return await logseq.Editor.getPage(root.page.id)
     } else {
-      return root.name
+      return root
     }
   }, [root.name, root.page?.id])
 
@@ -23,12 +23,20 @@ export default function Block({ root, block, levels, headingType }) {
     })()
   }, [block])
 
-  async function goTo() {
-    logseq.Editor.scrollToBlockInPage(await pageName, block.uuid)
+  async function goTo(e) {
+    if (e.shiftKey) {
+      logseq.Editor.openInRightSidebar((await page).uuid)
+    } else {
+      logseq.Editor.scrollToBlockInPage((await page).name, block.uuid)
+    }
   }
 
-  function goInto() {
-    logseq.Editor.scrollToBlockInPage(block.uuid)
+  function goInto(e) {
+    if (e.shiftKey) {
+      logseq.Editor.openInRightSidebar(block.uuid)
+    } else {
+      logseq.Editor.scrollToBlockInPage(block.uuid)
+    }
   }
 
   function toggleCollapsed() {

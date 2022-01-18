@@ -10,11 +10,11 @@ export default function TocGen({ root, blocks, levels, headingType, uuid }) {
     root.page == null ? root.originalName ?? root.name : "",
   )
   const [collapsed, setCollapsed] = useState(false)
-  const pageName = useMemo(async () => {
+  const page = useMemo(async () => {
     if (root.page) {
-      return (await logseq.Editor.getPage(root.page.id)).name
+      return await logseq.Editor.getPage(root.page.id)
     } else {
-      return root.name
+      return root
     }
   }, [root.name, root.page?.id])
 
@@ -36,24 +36,28 @@ export default function TocGen({ root, blocks, levels, headingType, uuid }) {
     }
   }
 
-  function goTo() {
-    if (root.page == null) {
-      logseq.Editor.scrollToBlockInPage(root.name)
+  function goTo(e) {
+    if (e.shiftKey) {
+      logseq.Editor.openInRightSidebar(root.uuid)
     } else {
-      logseq.Editor.scrollToBlockInPage(root.uuid)
+      if (root.page == null) {
+        logseq.Editor.scrollToBlockInPage(root.name)
+      } else {
+        logseq.Editor.scrollToBlockInPage(root.uuid)
+      }
     }
   }
 
-  async function goToPage() {
-    logseq.Editor.scrollToBlockInPage(await pageName, root.uuid)
+  async function goToPage(e) {
+    if (e.shiftKey) {
+      logseq.Editor.openInRightSidebar((await page).uuid)
+    } else {
+      logseq.Editor.scrollToBlockInPage((await page).name, root.uuid)
+    }
   }
 
   function toggleCollapsed() {
     setCollapsed((v) => !v)
-  }
-
-  function openInSidebar() {
-    logseq.Editor.openInRightSidebar(uuid)
   }
 
   if (blocks == null) {
@@ -74,7 +78,7 @@ export default function TocGen({ root, blocks, levels, headingType, uuid }) {
             }}
           />
         </button>
-        <span className="inline" onClick={onClick}>
+        <span className="inline" onClick={goTo}>
           {name}
         </span>
         {root.page != null && (
