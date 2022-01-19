@@ -13,6 +13,9 @@ export async function parseContent(content) {
   // Handle markdown.
   content = parse(content)
 
+  // Remove tags.
+  content = content.replace(/(?:^|\s)#\S+/g, "")
+
   // Replace block refs with their content.
   let match
   while ((match = /\(\(([^\)]+)\)\)/d.exec(content)) != null) {
