@@ -143,7 +143,12 @@ async function main() {
         resizeObserver.observe(mainContentContainer)
         resizeObserver.observe(contentEl)
       }
-      mainContainer.addEventListener("scroll", scrollHandler)
+      if (mainContainer.classList.contains("scrollbar-spacing")) {
+        // NOTE: prior v0.5.9
+        mainContainer.addEventListener("scroll", scrollHandler)
+      } else {
+        mainContentContainer.addEventListener("scroll", scrollHandler)
+      }
     }, 0)
   }
 
@@ -152,7 +157,12 @@ async function main() {
     for (const observer of Object.values(observers)) {
       observer?.disconnect()
     }
+
+    // NOTE: prior v0.5.9
     mainContainer.removeEventListener("scroll", scrollHandler)
+
+    mainContentContainer.removeEventListener("scroll", scrollHandler)
+
     resizeObserver?.disconnect()
   })
 
@@ -385,7 +395,15 @@ function createModel() {
   return {
     backtop() {
       const mainContainer = parent.document.getElementById("main-container")
-      mainContainer.scroll({ top: 0 })
+      if (mainContainer.classList.contains("scrollbar-spacing")) {
+        // NOTE prior v0.5.9
+        mainContainer.scroll({ top: 0 })
+      } else {
+        const mainContentContainer = parent.document.getElementById(
+          "main-content-container",
+        )
+        mainContentContainer.scroll({ top: 0 })
+      }
     },
   }
 }
