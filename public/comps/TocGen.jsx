@@ -87,19 +87,18 @@ export default function TocGen({ root, blocks, levels, headingType, uuid }) {
           </button>
         )}
       </div>
-      {!collapsed && (
-        <div className="kef-tocgen-block-children">
-          {blocks.map((block) => (
-            <Block
-              key={block.id}
-              root={root}
-              block={block}
-              levels={levels}
-              headingType={headingType}
-            />
-          ))}
-        </div>
-      )}
+      <div className="kef-tocgen-block-children">
+        {blocks.map((block) => (
+          <Block
+            key={block.id}
+            root={root}
+            block={block}
+            levels={levels}
+            headingType={headingType}
+            collapsed={collapsed}
+          />
+        ))}
+      </div>
     </>
   )
 }

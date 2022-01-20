@@ -3,9 +3,15 @@ import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
 
-export default function Block({ root, block, levels, headingType }) {
+export default function Block({
+  root,
+  block,
+  levels,
+  headingType,
+  collapsed = false,
+}) {
   const [content, setContent] = useState("")
-  const [collapsed, setCollapsed] = useState(
+  const [childrenCollapsed, setChildrenCollapsed] = useState(
     logseq.settings?.defaultCollapsed ?? false,
   )
   const { lang } = useContext(ConfigContext)
@@ -40,18 +46,20 @@ export default function Block({ root, block, levels, headingType }) {
   }
 
   function toggleCollapsed() {
-    setCollapsed((v) => !v)
+    setChildrenCollapsed((v) => !v)
   }
 
   function arrowShouldCollapse() {
     return (
-      collapsed &&
+      childrenCollapsed &&
       block.level < levels &&
       (headingType === HeadingTypes.h
         ? block.children.some((subblock) => subblock.content.startsWith("#"))
         : block.children.length > 0)
     )
   }
+
+  if (collapsed) return null
 
   // Hide empty blocks and render/macro blocks.
   if (
@@ -78,7 +86,7 @@ export default function Block({ root, block, levels, headingType }) {
           {lang === "zh-CN" ? "页面" : "page"}
         </button>
       </div>
-      {block.level < levels && !collapsed && (
+      {block.level < levels && (
         <div class="kef-tocgen-block-children">
           {block.children.map((subBlock) => (
             <Block
@@ -87,6 +95,7 @@ export default function Block({ root, block, levels, headingType }) {
               block={subBlock}
               levels={levels}
               headingType={headingType}
+              collapsed={childrenCollapsed}
             />
           ))}
         </div>
