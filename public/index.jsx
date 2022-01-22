@@ -98,7 +98,7 @@ async function main() {
   logseq.App.onMacroRendererSlotted(tocRenderer)
 
   logseq.Editor.registerSlashCommand("Table of Contents", async () => {
-    await logseq.Editor.insertAtEditingCursor("{{renderer :tocgen }}")
+    await logseq.Editor.insertAtEditingCursor("{{renderer :tocgen}}")
     // NOTE: Leave this cursor moving code for future reference.
     // const input = parent.document.activeElement
     // const pos = input.selectionStart - 2
