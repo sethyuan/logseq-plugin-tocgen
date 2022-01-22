@@ -298,7 +298,10 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
   if (observers[id] == null) {
     const observer = new MutationObserver(async (mutationList) => {
       for (const mutation of mutationList) {
-        if (mutation.removedNodes.length > 0 && !rootEl.isConnected) {
+        if (
+          mutation.removedNodes.length > 0 &&
+          (rootEl == null || !rootEl.isConnected)
+        ) {
           observer.disconnect()
           observers[id] = undefined
           return
@@ -341,7 +344,10 @@ function observePageViewChange(id, levels, headingType, lang, uuid) {
 
   pageObserver = new MutationObserver(async (mutationList) => {
     for (const mutation of mutationList) {
-      if (mutation.removedNodes.length > 0 && !rootEl.isConnected) {
+      if (
+        mutation.removedNodes.length > 0 &&
+        (rootEl == null || !rootEl.isConnected)
+      ) {
         pageObserver.disconnect()
         return
       }
@@ -391,21 +397,19 @@ async function getCurrentPageName() {
   return page?.name
 }
 
-function createModel() {
-  return {
-    backtop() {
-      const mainContainer = parent.document.getElementById("main-container")
-      if (mainContainer.classList.contains("scrollbar-spacing")) {
-        // NOTE prior v0.5.9
-        mainContainer.scroll({ top: 0 })
-      } else {
-        const mainContentContainer = parent.document.getElementById(
-          "main-content-container",
-        )
-        mainContentContainer.scroll({ top: 0 })
-      }
-    },
-  }
+const model = {
+  backtop() {
+    const mainContainer = parent.document.getElementById("main-container")
+    if (mainContainer.classList.contains("scrollbar-spacing")) {
+      // NOTE prior v0.5.9
+      mainContainer.scroll({ top: 0 })
+    } else {
+      const mainContentContainer = parent.document.getElementById(
+        "main-content-container",
+      )
+      mainContentContainer.scroll({ top: 0 })
+    }
+  },
 }
 
-logseq.ready(createModel(), main).catch(console.error)
+logseq.ready(model, main).catch(console.error)
