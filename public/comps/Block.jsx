@@ -54,7 +54,10 @@ export default function Block({
       childrenCollapsed &&
       block.level < levels &&
       (headingType === HeadingTypes.h
-        ? block.children.some((subblock) => subblock.content.startsWith("#"))
+        ? block.children.some(
+            (subblock) =>
+              subblock.content.startsWith("#") || subblock.properties.heading,
+          )
         : block.children.length > 0)
     )
   }
@@ -65,7 +68,9 @@ export default function Block({
   if (
     !content ||
     /^\s*{{/.test(content) ||
-    (headingType === HeadingTypes.h && !block.content.startsWith("#"))
+    (headingType === HeadingTypes.h &&
+      !block.content.startsWith("#") &&
+      !block.properties.heading)
   )
     return null
 
