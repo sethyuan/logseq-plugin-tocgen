@@ -6,7 +6,13 @@ Generate a TOC of any page/block anywhere and quickly access the page/block's co
 
 ## 使用展示 (Usage)
 
-![demo](./demo.gif)
+场景一，动态目录 (Scenario 1, dynamic TOC)
+
+![demo](demo_dynamic_toc.gif)
+
+场景二，页面内目录 (Scenario 2, inline TOC)
+
+![demo](demo_inline_toc.gif)
 
 ## 使用示例 (Examples)
 
