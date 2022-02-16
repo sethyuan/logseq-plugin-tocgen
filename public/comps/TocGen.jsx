@@ -4,7 +4,14 @@ import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
 
-export default function TocGen({ root, blocks, levels, headingType, uuid }) {
+export default function TocGen({
+  root,
+  blocks,
+  levels,
+  headingType,
+  blockToHighlight,
+  uuid,
+}) {
   const { lang } = useContext(ConfigContext)
   const [name, setName] = useState(() =>
     root.page == null ? root.originalName ?? root.name : "",
@@ -95,6 +102,7 @@ export default function TocGen({ root, blocks, levels, headingType, uuid }) {
             block={block}
             levels={levels}
             headingType={headingType}
+            blockToHighlight={blockToHighlight}
             collapsed={collapsed}
           />
         ))}

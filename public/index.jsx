@@ -50,6 +50,10 @@ async function main() {
     .kef-tocgen-block-children {
       margin-left: 20px;
     }
+    .kef-tocgen-active-block {
+      font-size: 1.1em;
+      font-weight: 600;
+    }
     .kef-tocgen-into {
       cursor: pointer;
     }
@@ -263,16 +267,17 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
     if (blockEl == null) return false
 
     const blockID = blockEl.getAttribute("blockid")
-    let block = await logseq.Editor.getBlock(blockID)
+    const block = await logseq.Editor.getBlock(blockID)
     if (block == null) return false
     if (root.page == null && block.page.id !== root.id) return false
     if (root.page != null) {
       // Keep checking parent until root is found or no more parent.
-      while (block != null) {
-        if (block.parent.id === root.id) break
-        block = await logseq.Editor.getBlock(block.parent.id)
+      let b = block
+      while (b != null) {
+        if (b.parent.id === root.id) break
+        b = await logseq.Editor.getBlock(b.parent.id)
       }
-      if (block == null) return false
+      if (b == null) return false
     }
 
     const blocks =
@@ -280,6 +285,28 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
         ? await logseq.Editor.getPageBlocksTree(root.name)
         : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
             .children
+
+    const blockLevel = +blockEl.getAttribute("level")
+    const levelsHigherUp = Math.max(blockLevel - levels, 1)
+    let blockToHighlight = block
+    for (let i = 0; i < levelsHigherUp; i++) {
+      blockToHighlight = await logseq.Editor.getBlock(
+        blockToHighlight.parent.id,
+      )
+    }
+    while (
+      headingType === HeadingTypes.h &&
+      blockToHighlight != null &&
+      !(
+        blockToHighlight.content.startsWith("#") ||
+        blockToHighlight.properties?.heading
+      )
+    ) {
+      blockToHighlight = await logseq.Editor.getBlock(
+        blockToHighlight.parent.id,
+      )
+    }
+
     render(
       <ConfigProvider lang={lang}>
         <TocGen
@@ -287,6 +314,7 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
           blocks={blocks}
           levels={levels}
           headingType={headingType}
+          blockToHighlight={blockToHighlight}
           uuid={uuid}
         />
       </ConfigProvider>,
@@ -308,6 +336,7 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
         }
 
         for (const node of mutation.addedNodes) {
+          if (!node?.classList.contains("block-editor")) continue
           if (await renderIfPageBlock(node)) return
         }
       }
@@ -381,7 +410,8 @@ function getBlockEl(node) {
   const body = document.body
   while (
     node != null &&
-    node.getAttribute?.("blockid") == null &&
+    (node.getAttribute?.("blockid") == null ||
+      node.getAttribute?.("level") == null) &&
     node !== body
   ) {
     node = node.parentElement

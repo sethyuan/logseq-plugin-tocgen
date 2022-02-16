@@ -83,9 +83,9 @@ There are a couple of user settings available when you access the plugin setting
 
 ## 自定义样式 (Syle Customization)
 
-你可以通过以下两个 CSS 类来自定义样式，`kef-tocgen-page` 对应页面，`kef-tocgen-block` 对应块。参照 Logseq 自定义样式的文档操作，将内容放在`custom.css`中即可。
+你可以通过以下几个 CSS 类来自定义样式，`kef-tocgen-page` 对应页面，`kef-tocgen-block` 对应块，`.kef-tocgen-active-block` 对应编辑中的块。参照 Logseq 自定义样式的文档操作，将内容放在`custom.css`中即可。
 
-You can customize styles using the following two CSS classes, `kef-tocgen-page` for page, `kef-tocgen-block` for block. Refer to Logseq's document for how to customize styles, place your modifications in `custom.css`.
+You can customize styles using the following CSS classes, `kef-tocgen-page` for page, `kef-tocgen-block` for block, `.kef-tocgen-active-block` for active block. Refer to Logseq's document for how to customize styles, place your modifications in `custom.css`.
 
 ```css
 .kef-tocgen-page {
@@ -94,6 +94,10 @@ You can customize styles using the following two CSS classes, `kef-tocgen-page` 
 }
 .kef-tocgen-block {
   line-height: 1.7;
+}
+.kef-tocgen-active-block {
+  font-size: 1.1em;
+  font-weight: 600;
 }
 ```
 

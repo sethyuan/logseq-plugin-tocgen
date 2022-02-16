@@ -97,6 +97,11 @@ rambdax@^8.0.0:
   resolved "https://registry.npmmirror.com/rambdax/download/rambdax-8.0.0.tgz#d6887f4b902e9165effabd89b2900cda14997334"
   integrity sha512-x5Er1Y5Mkk/b8OpqPDFblNwTKsc+ZfjTQkszOtvkgDwp7pDbJUIuUINGNIM42VOw1QRGYOcNuEKs3qXNLrJ8pg==
 
+reactutils@^5.10.0:
+  version "5.10.0"
+  resolved "https://registry.npmmirror.com/reactutils/-/reactutils-5.10.0.tgz#b6db379758b58018a3b569388a05689ed96c0ae5"
+  integrity sha512-KcSOdAYBAUVAe4PJLGeQsBhvRgDEO/2QNk2edvJ2VeDulgEfup7s+/l3Ax59GCpZvu6FIRP8hQW+SuhgmbB2bw==
+
 snake-case@^3.0.4:
   version "3.0.4"
   resolved "https://registry.npm.taobao.org/snake-case/download/snake-case-3.0.4.tgz?cache=0&sync_timestamp=1606869741560&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fsnake-case%2Fdownload%2Fsnake-case-3.0.4.tgz#4f2bbd568e9935abdfd593f34c691dadb49c452c"

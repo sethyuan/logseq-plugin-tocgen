@@ -1,4 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "preact/hooks"
+import { cls } from "reactutils"
 import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
@@ -8,6 +9,7 @@ export default function Block({
   block,
   levels,
   headingType,
+  blockToHighlight,
   collapsed = false,
 }) {
   const [content, setContent] = useState("")
@@ -76,7 +78,12 @@ export default function Block({
 
   return (
     <>
-      <div class="kef-tocgen-block">
+      <div
+        class={cls(
+          "kef-tocgen-block",
+          block.id === blockToHighlight?.id && "kef-tocgen-active-block",
+        )}
+      >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
           <Arrow
             style={{
@@ -100,6 +107,7 @@ export default function Block({
               block={subBlock}
               levels={levels}
               headingType={headingType}
+              blockToHighlight={blockToHighlight}
               collapsed={childrenCollapsed}
             />
           ))}

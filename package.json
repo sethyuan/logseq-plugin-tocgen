@@ -1,6 +1,6 @@
 {
   "name": "logseq-plugin-tocgen",
-  "version": "1.8.8",
+  "version": "1.9.0",
   "main": "dist/index.html",
   "logseq": {
     "id": "_sethyuan-logseq-tocgen",
@@ -15,7 +15,8 @@
     "@logseq/libs": "^0.0.1-alpha.33",
     "marked": "^4.0.8",
     "preact": "^10.6.4",
-    "rambdax": "^8.0.0"
+    "rambdax": "^8.0.0",
+    "reactutils": "^5.10.0"
   },
   "devDependencies": {
     "wmr": "^3.7.2"
