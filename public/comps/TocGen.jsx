@@ -1,4 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "preact/hooks"
+import { cls } from "reactutils"
 import { parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
@@ -77,7 +78,12 @@ export default function TocGen({
 
   return (
     <>
-      <div class="kef-tocgen-page">
+      <div
+        class={cls(
+          "kef-tocgen-page",
+          blockToHighlight == null && "kef-tocgen-active-block",
+        )}
+      >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
           <Arrow
             style={{

@@ -285,27 +285,11 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
         ? await logseq.Editor.getPageBlocksTree(root.name)
         : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
             .children
-
-    const blockLevel = +blockEl.getAttribute("level")
-    const levelsHigherUp = Math.max(blockLevel - levels, 1)
-    let blockToHighlight = block
-    for (let i = 0; i < levelsHigherUp; i++) {
-      blockToHighlight = await logseq.Editor.getBlock(
-        blockToHighlight.parent.id,
-      )
-    }
-    while (
-      headingType === HeadingTypes.h &&
-      blockToHighlight != null &&
-      !(
-        blockToHighlight.content.startsWith("#") ||
-        blockToHighlight.properties?.heading
-      )
-    ) {
-      blockToHighlight = await logseq.Editor.getBlock(
-        blockToHighlight.parent.id,
-      )
-    }
+    const blockToHighlight = await findBlockToHighlight(
+      block,
+      levels,
+      headingType,
+    )
 
     render(
       <ConfigProvider lang={lang}>
@@ -422,13 +406,35 @@ function getBlockEl(node) {
   const body = document.body
   while (
     node != null &&
-    (node.getAttribute?.("blockid") == null ||
-      node.getAttribute?.("level") == null) &&
+    node.getAttribute?.("blockid") == null &&
     node !== body
   ) {
     node = node.parentElement
   }
   return node === body ? null : node
+}
+
+async function findBlockToHighlight(block, levels, headingType) {
+  const nodes = []
+
+  let temp = block
+  while (temp?.parent != null) {
+    nodes.unshift(temp)
+    temp = await logseq.Editor.getBlock(temp.parent.id)
+  }
+
+  if (nodes.length === 1) return null
+
+  let index = nodes.length <= levels ? nodes.length - 2 : levels - 1
+  while (
+    headingType === HeadingTypes.h &&
+    index >= 0 &&
+    !(nodes[index].content.startsWith("#") || nodes[index].properties?.heading)
+  ) {
+    index--
+  }
+
+  return index < 0 ? null : nodes[index]
 }
 
 async function getCurrentPageName() {
