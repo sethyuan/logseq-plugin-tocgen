@@ -336,7 +336,7 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
         }
 
         for (const node of mutation.addedNodes) {
-          if (!node?.classList.contains("block-editor")) continue
+          if (node.className !== "flex-1 w-full") continue
           if (await renderIfPageBlock(node)) return
         }
       }
