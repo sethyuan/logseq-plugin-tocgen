@@ -51,8 +51,8 @@ async function main() {
       margin-left: 20px;
     }
     .kef-tocgen-active-block {
-      font-size: 1.1em;
       font-weight: 600;
+      color: var(--ls-link-text-color);
     }
     .kef-tocgen-into {
       cursor: pointer;
@@ -325,6 +325,8 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
 
   if (observers[id] == null) {
     const observer = new MutationObserver(async (mutationList) => {
+      let blockNode = null
+      let editingNode = null
       for (const mutation of mutationList) {
         if (
           mutation.removedNodes.length > 0 &&
@@ -336,9 +338,19 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
         }
 
         for (const node of mutation.addedNodes) {
-          if (node.className !== "flex-1 w-full") continue
-          if (await renderIfPageBlock(node)) return
+          if (blockNode == null && node.className === "flex-1 w-full") {
+            blockNode = node
+            continue
+          }
+          if (editingNode == null && node.classList?.contains("block-editor")) {
+            editingNode = node
+            continue
+          }
         }
+      }
+      const blockToTest = editingNode || blockNode
+      if (blockToTest != null) {
+        await renderIfPageBlock(blockToTest)
       }
     })
     observers[id] = observer
