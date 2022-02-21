@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "preact/hooks"
+import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { cls } from "reactutils"
 import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
@@ -24,12 +24,22 @@ export default function Block({
       return root
     }
   }, [root.name, root.page?.id])
+  const elRef = useRef()
 
   useEffect(() => {
     ;(async () => {
       setContent(await parseContent(block.content))
     })()
   }, [block])
+
+  useEffect(() => {
+    if (block.id === blockToHighlight?.id && elRef.current) {
+      elRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
+    }
+  }, [block.id, blockToHighlight?.id])
 
   async function goTo(e) {
     if (e.shiftKey) {
@@ -79,6 +89,7 @@ export default function Block({
   return (
     <>
       <div
+        ref={elRef}
         class={cls(
           "kef-tocgen-block",
           block.id === blockToHighlight?.id && "kef-tocgen-active-block",
