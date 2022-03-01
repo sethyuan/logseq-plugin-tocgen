@@ -63,7 +63,8 @@ If you want to generate a TOC that dynamically changes according to what page yo
   "defaultLevels": 1,
   "defaultCollaped": false,
   "defaultHeadingType": "any",
-  "hideBackTop": false
+  "hideBackTop": false,
+  "noPageJump": false
 }
 ```
 
@@ -73,6 +74,7 @@ If you want to generate a TOC that dynamically changes according to what page yo
 - `defaultCollapsed`: 默认目录是否为折叠状态。
 - `defaultHeadingType`: 默认识别的标题类型。可以指定`any`，代表任何块都可作为标题识别；`h`代表仅 H1-Hn 块可作为标题识别。
 - `hideBackTop`: 如果不想要“滚动回页面顶部”这个功能的话可以通过这个设置关闭。
+- `noPageJump`: 设置为`true`在目录中就不会有`页面`链接了。
 
 There are a couple of user settings available when you access the plugin settings from Logseq's plugins page. Please refer to the source block above (Default values are given in the source block).
 
@@ -80,6 +82,7 @@ There are a couple of user settings available when you access the plugin setting
 - `defaultCollapsed`: It defines whether TOC is collapsed by default.
 - `defaultHeadingType`: It defines what kind of blocks can be recognized as a heading. `any` means that any block will do；`h` means that only H1-Hn blocks are accepted as headings.
 - `hideBackTop`: You can use this setting to disable the "Back to Top" functionality.
+- `noPageJump`: Set this to `true` and you will not see the `page` link in TOC.
 
 ## 自定义样式 (Syle Customization)
 

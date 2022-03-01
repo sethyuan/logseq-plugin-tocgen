@@ -94,7 +94,7 @@ export default function TocGen({
         <span className="inline" onClick={goTo}>
           {name}
         </span>
-        {root.page != null && (
+        {root.page != null && !logseq.settings?.noPageJump && (
           <button class="kef-tocgen-to" onClick={goToPage}>
             {lang === "zh-CN" ? "页面" : "page"}
           </button>

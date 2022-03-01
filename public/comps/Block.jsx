@@ -105,9 +105,11 @@ export default function Block({
         <span class="kef-tocgen-into inline" onClick={goInto}>
           {content}
         </span>
-        <button class="kef-tocgen-to" onClick={goTo}>
-          {lang === "zh-CN" ? "页面" : "page"}
-        </button>
+        {!logseq.settings?.noPageJump && (
+          <button class="kef-tocgen-to" onClick={goTo}>
+            {lang === "zh-CN" ? "页面" : "page"}
+          </button>
+        )}
       </div>
       {block.level < levels && (
         <div class="kef-tocgen-block-children">
