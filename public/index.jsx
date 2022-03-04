@@ -309,9 +309,8 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
 
   if (observers[id] == null) {
     const observer = new MutationObserver(async (mutationList) => {
-      let blockNode = null
-      let editingNode = null
-      for (const mutation of mutationList) {
+      let block = null
+      loop: for (const mutation of mutationList) {
         if (
           mutation.removedNodes.length > 0 &&
           (rootEl == null || !rootEl.isConnected)
@@ -322,19 +321,19 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
         }
 
         for (const node of mutation.addedNodes) {
-          if (blockNode == null && node.className === "flex-1 w-full") {
-            blockNode = node
-            continue
-          }
-          if (editingNode == null && node.classList?.contains("block-editor")) {
-            editingNode = node
-            continue
+          if (
+            node.className === "flex-1 w-full" ||
+            node.className === "block-children-container flex" ||
+            node.classList?.contains("block-editor") ||
+            node.classList?.contains("ls-block")
+          ) {
+            block = node
+            break loop
           }
         }
       }
-      const blockToTest = editingNode || blockNode
-      if (blockToTest != null) {
-        await renderIfPageBlock(blockToTest)
+      if (block != null) {
+        await renderIfPageBlock(block)
       }
     })
     observers[id] = observer
