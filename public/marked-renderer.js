@@ -32,13 +32,13 @@ function htmlDecode(str) {
 
 const renderer = {
   // Block level renderers.
-  code: () => "",
+  code: (code) => code,
   blockquote: (quote) => quote,
   html: (html) => html,
   heading: (text, level, raw) => text,
   hr: () => "",
-  list: () => "",
-  listitem: () => "",
+  list: (body, ordered, start) => `${ordered ? `${start}. ` : ""}${body}`,
+  listitem: (text) => text,
   checkbox: () => "",
   paragraph: (text) => text,
   table: () => "",
