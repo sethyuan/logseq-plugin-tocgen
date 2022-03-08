@@ -285,8 +285,9 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
         ? await logseq.Editor.getPageBlocksTree(root.name)
         : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
             .children
+    const currentBlock = await logseq.Editor.getCurrentBlock()
     const blockToHighlight = await findBlockToHighlight(
-      block,
+      currentBlock,
       levels,
       headingType,
     )

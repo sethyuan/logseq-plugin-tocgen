@@ -32,15 +32,6 @@ export default function Block({
     })()
   }, [block])
 
-  useEffect(() => {
-    if (block.id === blockToHighlight?.id && elRef.current) {
-      elRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      })
-    }
-  }, [block.id, blockToHighlight?.id])
-
   async function goTo(e) {
     if (e.shiftKey) {
       logseq.Editor.openInRightSidebar((await page).uuid)
