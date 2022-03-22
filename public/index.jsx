@@ -49,6 +49,22 @@ async function main() {
     }
     .kef-tocgen-block-children {
       margin-left: 20px;
+      position: relative;
+    }
+    .kef-tocgen-block-collapse {
+      z-index: 1;
+      position: absolute;
+      top: 5px;
+      left: -15px;
+      width: 4px;
+      height: calc(100% - 10px);
+      border-left: 1px solid rgba(229,229,229,var(--tw-border-opacity));
+      cursor: pointer;
+    }
+    .kef-tocgen-block-collapse:hover {
+      border-left: 4px solid var(--ls-primary-text-color);
+      left: -16px;
+      border-radius: 2px;
     }
     .kef-tocgen-active-block {
       font-weight: 600;
@@ -71,6 +87,9 @@ async function main() {
     .kef-tocgen-arrow {
       padding-right: 4px;
       margin-right: 3px;
+    }
+    .kef-tocgen-arrow-hide {
+      visibility: hidden;
     }
     .kef-tocgen-noactivepage::before {
       content: "${lang === "zh-CN" ? "无活动页面" : "No active page"}";
@@ -242,6 +261,9 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     slot,
     template: `<div id="${id}"></div>`,
     reset: true,
+    style: {
+      cursor: "default",
+    },
   })
 
   // Let div root element get generated first.

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "preact/hooks"
-import { cls } from "reactutils"
+import { cls, useDependentState } from "reactutils"
 import { parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
@@ -18,6 +18,14 @@ export default function TocGen({
     root.page == null ? root.originalName ?? root.name : "",
   )
   const [collapsed, setCollapsed] = useState(false)
+  const [childrenCollapsed, setChildrenCollapsed] = useDependentState(
+    () =>
+      blocks.reduce((status, block) => {
+        status[block.id] = logseq.settings?.defaultCollpased ?? false
+        return status
+      }, {}),
+    [blocks],
+  )
   const page = useMemo(async () => {
     if (root.page) {
       return await logseq.Editor.getPage(root.page.id)
@@ -68,6 +76,22 @@ export default function TocGen({
     setCollapsed((v) => !v)
   }
 
+  function collapseChildren() {
+    setChildrenCollapsed(
+      blocks.reduce((status, block) => {
+        status[block.id] = true
+        return status
+      }, {}),
+    )
+  }
+
+  function onBlockCollapseChange(blockId, blockCollapsed) {
+    setChildrenCollapsed((old) => ({
+      ...old,
+      [blockId]: blockCollapsed,
+    }))
+  }
+
   if (blocks == null) {
     return (
       <div style={{ color: "#f00" }}>
@@ -101,6 +125,7 @@ export default function TocGen({
         )}
       </div>
       <div className="kef-tocgen-block-children">
+        <div className="kef-tocgen-block-collapse" onClick={collapseChildren} />
         {blocks.map((block) => (
           <Block
             key={block.id}
@@ -109,7 +134,9 @@ export default function TocGen({
             levels={levels}
             headingType={headingType}
             blockToHighlight={blockToHighlight}
-            collapsed={collapsed}
+            hidden={collapsed}
+            collapsed={childrenCollapsed[block.id]}
+            onCollapseChange={onBlockCollapseChange}
           />
         ))}
       </div>

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks"
-import { cls } from "reactutils"
+import { cls, useDependentState } from "reactutils"
 import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
@@ -10,11 +10,18 @@ export default function Block({
   levels,
   headingType,
   blockToHighlight,
-  collapsed = false,
+  hidden,
+  collapsed,
+  onCollapseChange,
 }) {
   const [content, setContent] = useState("")
-  const [childrenCollapsed, setChildrenCollapsed] = useState(
-    logseq.settings?.defaultCollapsed ?? false,
+  const [childrenCollapsed, setChildrenCollapsed] = useDependentState(
+    () =>
+      block.children.reduce((status, block) => {
+        status[block.id] = logseq.settings?.defaultCollapsed ?? false
+        return status
+      }, {}),
+    [block.children],
   )
   const { lang } = useContext(ConfigContext)
   const page = useMemo(async () => {
@@ -49,12 +56,12 @@ export default function Block({
   }
 
   function toggleCollapsed() {
-    setChildrenCollapsed((v) => !v)
+    onCollapseChange?.(block.id, !collapsed)
   }
 
   function arrowShouldCollapse() {
     return (
-      childrenCollapsed &&
+      collapsed &&
       block.level < levels &&
       (headingType === HeadingTypes.h
         ? block.children.some(
@@ -65,7 +72,23 @@ export default function Block({
     )
   }
 
-  if (collapsed) return null
+  function collapseChildren() {
+    setChildrenCollapsed(
+      block.children.reduce((status, block) => {
+        status[block.id] = true
+        return status
+      }, {}),
+    )
+  }
+
+  function onBlockCollapseChange(blockId, blockCollapsed) {
+    setChildrenCollapsed((old) => ({
+      ...old,
+      [blockId]: blockCollapsed,
+    }))
+  }
+
+  if (hidden) return null
 
   // Hide empty blocks and render/macro blocks.
   if (
@@ -104,6 +127,10 @@ export default function Block({
       </div>
       {block.level < levels && (
         <div class="kef-tocgen-block-children">
+          <div
+            className="kef-tocgen-block-collapse"
+            onClick={collapseChildren}
+          />
           {block.children.map((subBlock) => (
             <Block
               key={subBlock.id}
@@ -112,7 +139,9 @@ export default function Block({
               levels={levels}
               headingType={headingType}
               blockToHighlight={blockToHighlight}
-              collapsed={childrenCollapsed}
+              hidden={collapsed}
+              collapsed={childrenCollapsed[subBlock.id]}
+              onCollapseChange={onBlockCollapseChange}
             />
           ))}
         </div>
