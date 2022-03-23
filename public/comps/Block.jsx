@@ -21,7 +21,7 @@ export default function Block({
         status[block.id] = logseq.settings?.defaultCollapsed ?? false
         return status
       }, {}),
-    [block.children],
+    [],
   )
   const { lang } = useContext(ConfigContext)
   const page = useMemo(async () => {
