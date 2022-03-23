@@ -48,14 +48,14 @@ async function main() {
       line-height: 1.7;
     }
     .kef-tocgen-block-children {
-      margin-left: 20px;
+      margin-left: 14px;
       position: relative;
     }
     .kef-tocgen-block-collapse {
       z-index: 1;
       position: absolute;
       top: 5px;
-      left: -15px;
+      left: -10px;
       width: 4px;
       height: calc(100% - 10px);
       border-left: 1px solid rgba(229,229,229,var(--tw-border-opacity));
@@ -63,7 +63,7 @@ async function main() {
     }
     .kef-tocgen-block-collapse:hover {
       border-left: 4px solid var(--ls-primary-text-color);
-      left: -16px;
+      left: -11px;
       border-radius: 2px;
     }
     .kef-tocgen-active-block {
@@ -88,7 +88,7 @@ async function main() {
       padding-right: 4px;
       margin-right: 3px;
     }
-    .kef-tocgen-arrow-hide {
+    .kef-tocgen-arrow-hidden {
       visibility: hidden;
     }
     .kef-tocgen-noactivepage::before {

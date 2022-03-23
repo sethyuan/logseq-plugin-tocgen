@@ -31,13 +31,21 @@ export default function Block({
       return root
     }
   }, [root.name, root.page?.id])
-  const elRef = useRef()
+  const subblocksRef = useRef()
+  const [noChildren, setNoChildren] = useState(false)
 
   useEffect(() => {
     ;(async () => {
       setContent(await parseContent(block.content))
     })()
   }, [block])
+
+  useEffect(() => {
+    const val = subblocksRef.current?.childElementCount <= 1
+    if (noChildren !== val) {
+      setNoChildren(val)
+    }
+  })
 
   async function goTo(e) {
     if (e.shiftKey) {
@@ -100,10 +108,11 @@ export default function Block({
   )
     return null
 
+  const arrowCollapsed = arrowShouldCollapse()
+
   return (
     <>
       <div
-        ref={elRef}
         class={cls(
           "kef-tocgen-block",
           block.id === blockToHighlight?.id && "kef-tocgen-active-block",
@@ -111,8 +120,11 @@ export default function Block({
       >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
           <Arrow
+            class={cls(
+              !arrowCollapsed && noChildren && "kef-tocgen-arrow-hidden",
+            )}
             style={{
-              transform: arrowShouldCollapse() ? null : "rotate(90deg)",
+              transform: arrowCollapsed ? null : "rotate(90deg)",
             }}
           />
         </button>
@@ -126,7 +138,7 @@ export default function Block({
         )}
       </div>
       {block.level < levels && (
-        <div class="kef-tocgen-block-children">
+        <div class="kef-tocgen-block-children" ref={subblocksRef}>
           <div
             className="kef-tocgen-block-collapse"
             onClick={collapseChildren}
