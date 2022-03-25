@@ -61,7 +61,7 @@ If you want to generate a TOC that dynamically changes according to what page yo
 {
   "disabled": false,
   "defaultLevels": 1,
-  "defaultCollaped": false,
+  "defaultCollapsed": false,
   "defaultHeadingType": "any",
   "hideBackTop": false,
   "noPageJump": false

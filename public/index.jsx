@@ -200,7 +200,7 @@ async function main() {
           : "It defines how many levels a TOC contains by default if not specified when the TOC is created.",
     },
     {
-      key: "defaultCollaped",
+      key: "defaultCollapsed",
       type: "boolean",
       default: false,
       description:
