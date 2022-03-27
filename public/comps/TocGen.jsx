@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "preact/hooks"
 import { cls, useDependentState } from "reactutils"
-import { parseContent } from "../utils.js"
+import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
@@ -76,13 +76,35 @@ export default function TocGen({
     setCollapsed((v) => !v)
   }
 
-  function collapseChildren() {
-    setChildrenCollapsed(
-      blocks.reduce((status, block) => {
-        status[block.id] = true
-        return status
-      }, {}),
-    )
+  function toggleCollapseChildren() {
+    if (
+      blocks.some(
+        (block) =>
+          !childrenCollapsed[block.id] &&
+          block.level < levels &&
+          (headingType === HeadingTypes.h
+            ? block.children.some(
+                (subblock) =>
+                  subblock.content.startsWith("#") ||
+                  subblock.properties?.heading,
+              )
+            : block.children.length > 0),
+      )
+    ) {
+      setChildrenCollapsed(
+        blocks.reduce((status, block) => {
+          status[block.id] = true
+          return status
+        }, {}),
+      )
+    } else {
+      setChildrenCollapsed(
+        blocks.reduce((status, block) => {
+          status[block.id] = false
+          return status
+        }, {}),
+      )
+    }
   }
 
   function onBlockCollapseChange(blockId, blockCollapsed) {
@@ -125,7 +147,10 @@ export default function TocGen({
         )}
       </div>
       <div className="kef-tocgen-block-children">
-        <div className="kef-tocgen-block-collapse" onClick={collapseChildren} />
+        <div
+          className="kef-tocgen-block-collapse"
+          onClick={toggleCollapseChildren}
+        />
         {blocks.map((block) => (
           <Block
             key={block.id}

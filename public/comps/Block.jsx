@@ -67,21 +67,21 @@ export default function Block({
     onCollapseChange?.(block.id, !collapsed)
   }
 
-  function arrowShouldCollapse() {
-    return (
-      collapsed &&
-      block.level < levels &&
-      (headingType === HeadingTypes.h
-        ? block.children.some(
-            (subblock) =>
-              subblock.content.startsWith("#") || subblock.properties?.heading,
-          )
-        : block.children.length > 0)
-    )
-  }
-
   function toggleCollapseChildren() {
-    if (block.children.some((block) => !childrenCollapsed[block.id])) {
+    if (
+      block.children.some(
+        (block) =>
+          !childrenCollapsed[block.id] &&
+          block.level < levels &&
+          (headingType === HeadingTypes.h
+            ? block.children.some(
+                (subblock) =>
+                  subblock.content.startsWith("#") ||
+                  subblock.properties?.heading,
+              )
+            : block.children.length > 0),
+      )
+    ) {
       setChildrenCollapsed(
         block.children.reduce((status, block) => {
           status[block.id] = true
@@ -117,7 +117,15 @@ export default function Block({
   )
     return null
 
-  const arrowCollapsed = arrowShouldCollapse()
+  const arrowCollapsed =
+    collapsed &&
+    block.level < levels &&
+    (headingType === HeadingTypes.h
+      ? block.children.some(
+          (subblock) =>
+            subblock.content.startsWith("#") || subblock.properties?.heading,
+        )
+      : block.children.length > 0)
 
   return (
     <>
