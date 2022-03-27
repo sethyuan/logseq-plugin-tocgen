@@ -80,13 +80,22 @@ export default function Block({
     )
   }
 
-  function collapseChildren() {
-    setChildrenCollapsed(
-      block.children.reduce((status, block) => {
-        status[block.id] = true
-        return status
-      }, {}),
-    )
+  function toggleCollapseChildren() {
+    if (block.children.some((block) => !childrenCollapsed[block.id])) {
+      setChildrenCollapsed(
+        block.children.reduce((status, block) => {
+          status[block.id] = true
+          return status
+        }, {}),
+      )
+    } else {
+      setChildrenCollapsed(
+        block.children.reduce((status, block) => {
+          status[block.id] = false
+          return status
+        }, {}),
+      )
+    }
   }
 
   function onBlockCollapseChange(blockId, blockCollapsed) {
@@ -141,7 +150,7 @@ export default function Block({
         <div class="kef-tocgen-block-children" ref={subblocksRef}>
           <div
             className="kef-tocgen-block-collapse"
-            onClick={collapseChildren}
+            onClick={toggleCollapseChildren}
           />
           {block.children.map((subBlock) => (
             <Block
