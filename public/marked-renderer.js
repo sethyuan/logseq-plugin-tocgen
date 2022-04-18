@@ -53,9 +53,23 @@ const renderer = {
   del: (text) => text,
   link: (href, title, text) => text,
   image: (href, title, text) => text,
-  text: (text) => htmlDecode(text),
+  text: (text) =>
+    text.startsWith("[^") && text.endsWith("]") ? "" : htmlDecode(text),
 }
 
-marked.use({ renderer })
+const tokenizer = {
+  link: (src) => {
+    if (src.startsWith("[^") && src.endsWith("]")) {
+      return {
+        type: "text",
+        raw: src,
+        text: src,
+      }
+    }
+    return false
+  },
+}
+
+marked.use({ renderer, tokenizer })
 
 export const parse = marked.parse
