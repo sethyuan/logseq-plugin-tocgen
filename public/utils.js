@@ -7,6 +7,9 @@ export async function parseContent(content) {
   // Use only the first line.
   content = content.match(/.*/)[0]
 
+  // Remove macro renderers.
+  content = content.replace(/ \{\{renderer (?:\}[^\}]|[^\}])+\}\}/g, "")
+
   // Remove properties.
   content = content.replace(/\b[^:\n]+:: [^\n]+/g, "")
 
