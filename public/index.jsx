@@ -3,7 +3,7 @@ import { render } from "preact"
 import { debounce } from "rambdax"
 import ConfigProvider from "./comps/ConfigProvider.jsx"
 import TocGen from "./comps/TocGen.jsx"
-import { hash, HeadingTypes } from "./utils.js"
+import { HeadingTypes } from "./utils.js"
 
 const observers = {}
 let resizeObserver = null
@@ -246,6 +246,9 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const [type] = args
   if (type.trim() !== ":tocgen") return
 
+  const renderered = parent.document.getElementById(slot).childElementCount > 0
+  if (renderered) return
+
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
   const nameArg = !args[1] || args[1] === "$1" ? "" : args[1].trim()
   const isBlock = nameArg?.startsWith("((")
@@ -262,7 +265,6 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
             ).page.id,
           )
         ).name
-
   const levels =
     !args[2] || args[2] === "$2"
       ? logseq.settings?.defaultLevels ?? 1
@@ -271,19 +273,18 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     !args[3] || args[3] === "$3"
       ? logseq.settings?.defaultHeadingType ?? "any"
       : args[3].trim()
-  const id = `kef-toc-${await hash(
-    name,
-  )}-${levels}-${headingType}-${uuid}-${slot}`
+  const id = `kef-toc-${slot}`
 
   if (HeadingTypes[headingType] == null) {
     logseq.provideUI({
-      key: id,
+      key: "error",
       slot,
       template: `<div id="${id}" style="color:#f00">[${
         lang === "zh-CN"
           ? "标题类型需为 any 或 h！"
           : 'Heading type must be "any" or "h"!'
       }]</div>`,
+      reset: true,
     })
     return
   }
@@ -297,17 +298,18 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
 
   if (name != null && root == null) {
     logseq.provideUI({
-      key: id,
+      key: "error",
       slot,
       template: `<div id="${id}" style="color:#f00">[${
         lang === "zh-CN" ? "页面/块不存在！" : "Page/Block not found!"
       }]</div>`,
+      reset: true,
     })
     return
   }
 
   logseq.provideUI({
-    key: id,
+    key: "toc",
     slot,
     template: `<div id="${id}"></div>`,
     reset: true,
