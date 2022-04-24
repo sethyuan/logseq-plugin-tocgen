@@ -145,9 +145,11 @@ export default function Block({
             }}
           />
         </button>
-        <span class="kef-tocgen-into inline" onClick={goInto}>
-          {content}
-        </span>
+        <span
+          class="kef-tocgen-into inline"
+          onClick={goInto}
+          dangerouslySetInnerHTML={{ __html: content }}
+        ></span>
         {!logseq.settings?.noPageJump && (
           <button class="kef-tocgen-to" onClick={goTo}>
             {lang === "zh-CN" ? "页面" : "page"}

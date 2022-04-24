@@ -137,9 +137,11 @@ export default function TocGen({
             }}
           />
         </button>
-        <span className="inline" onClick={goTo}>
-          {name}
-        </span>
+        <span
+          className="inline"
+          onClick={goTo}
+          dangerouslySetInnerHTML={{ __html: name }}
+        ></span>
         {root.page != null && !logseq.settings?.noPageJump && (
           <button class="kef-tocgen-to" onClick={goToPage}>
             {lang === "zh-CN" ? "页面" : "page"}

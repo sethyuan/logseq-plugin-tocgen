@@ -16,6 +16,11 @@ export async function parseContent(content) {
   // Handle markdown.
   content = parse(content)
 
+  // Handle LaTex
+  content = content.replaceAll(/(\${1,2})([^\$]+)\1/g, (str, _, expr) => {
+    return parent.window.katex.renderToString(expr, { throwOnError: false })
+  })
+
   // Remove tags.
   content = content.replace(/(?:^|\s)#\S+/g, "")
 
