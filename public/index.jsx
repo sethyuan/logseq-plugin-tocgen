@@ -246,9 +246,6 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const [type] = args
   if (type.trim() !== ":tocgen") return
 
-  const renderered = parent.document.getElementById(slot).childElementCount > 0
-  if (renderered) return
-
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
   const nameArg = !args[1] || args[1] === "$1" ? "" : args[1].trim()
   const isBlock = nameArg?.startsWith("((")
@@ -308,15 +305,18 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     return
   }
 
-  logseq.provideUI({
-    key: "toc",
-    slot,
-    template: `<div id="${id}"></div>`,
-    reset: true,
-    style: {
-      cursor: "default",
-    },
-  })
+  const renderered = parent.document.getElementById(slot).childElementCount > 0
+  if (!renderered) {
+    logseq.provideUI({
+      key: "toc",
+      slot,
+      template: `<div id="${id}"></div>`,
+      reset: true,
+      style: {
+        cursor: "default",
+      },
+    })
+  }
 
   // Let div root element get generated first.
   setTimeout(async () => {
