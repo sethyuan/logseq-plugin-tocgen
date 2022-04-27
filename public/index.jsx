@@ -10,10 +10,11 @@ let resizeObserver = null
 let pageObserver = null
 
 const BACK_TOP_ICON = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4076" width="200" height="200"><path d="M526.848 202.24c-4.096-4.096-9.216-6.144-14.848-6.144s-11.264 2.048-14.848 6.144L342.016 356.864c-8.192 8.192-8.192 21.504 0 30.208 8.192 8.192 21.504 8.192 30.208 0L512 247.296l139.776 139.776c4.096 4.096 9.728 6.144 14.848 6.144 5.632 0 10.752-2.048 14.848-6.144 8.192-8.192 8.192-21.504 0-30.208L526.848 202.24zM116.224 595.968h90.624v231.936h42.496V595.968h90.624v-42.496H115.712v42.496z m458.24-42.496h-112.64c-13.824 0-27.136 5.12-37.376 15.36s-15.36 24.064-15.36 37.376v168.448c0 13.824 5.12 27.136 15.36 37.376s24.064 15.36 37.376 15.36h112.64c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376V606.208c0-13.824-5.12-27.136-15.36-37.376s-23.552-15.36-37.376-15.36z m10.752 221.696c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072h-112.64c-2.048 0-5.12-0.512-7.68-3.072s-3.072-5.632-3.072-7.68V606.72c0-2.048 0.512-5.12 3.072-7.68s5.632-3.072 7.68-3.072h112.64c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v168.448z m307.2-205.824c-10.24-10.24-24.064-15.36-37.376-15.36H709.632v274.432h42.496v-120.32H855.04c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376v-48.128c0-14.336-5.12-27.648-15.36-37.888z m-27.136 84.992c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072H751.104v-69.12H855.04c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v47.616h-0.512z" p-id="4077"></path></svg>`
+const GO_DOWN_ICON = `<svg t="1651059361900" class="kef-tocgen-icon-godown" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12219" width="200" height="200"><path d="M830.24 340.688l11.328 11.312a16 16 0 0 1 0 22.624L530.448 685.76a16 16 0 0 1-22.64 0L196.688 374.624a16 16 0 0 1 0-22.624l11.312-11.312a16 16 0 0 1 22.624 0l288.496 288.496 288.512-288.496a16 16 0 0 1 22.624 0z" p-id="12220"></path></svg>`
 const ICON_TRANSITION_DURATION = 200
 const CURRENT = "*"
 
-const scrollHandler = debounce((e) => {
+const backtopScrollHandler = debounce((e) => {
   const scrollTop = e.target.scrollTop
   const backtop = parent.document.querySelector(".kef-tocgen-backtop")
   if (scrollTop >= 300) {
@@ -28,6 +29,27 @@ const scrollHandler = debounce((e) => {
       backtop.style.opacity = 0
       setTimeout(() => {
         backtop.style.display = ""
+      }, ICON_TRANSITION_DURATION)
+    }
+  }
+}, 50)
+
+const godownScrollHandler = debounce((e) => {
+  const scrollHeight = e.target.scrollHeight
+  const scrollTop = e.target.scrollTop
+  const godown = parent.document.querySelector(".kef-tocgen-godown")
+  if (scrollTop + e.target.clientHeight + 300 <= scrollHeight) {
+    if (godown.style.display !== "block") {
+      godown.style.display = "block"
+      requestAnimationFrame(() => {
+        godown.style.opacity = 0.7
+      })
+    }
+  } else {
+    if (godown.style.display === "block") {
+      godown.style.opacity = 0
+      setTimeout(() => {
+        godown.style.display = ""
       }, ICON_TRANSITION_DURATION)
     }
   }
@@ -98,7 +120,7 @@ async function main() {
     .kef-tocgen-backtop {
       position: fixed;
       left: 0;
-      bottom: 55px;
+      bottom: 95px;
       will-change: transform;
       background: var(--ls-secondary-background-color);
       border-radius: 50%;
@@ -111,6 +133,27 @@ async function main() {
       box-shadow: 0px 2px 4px 0px #ccc;
     }
     .kef-tocgen-icon-backtop {
+      width: 35px;
+      height: 35px;
+      fill: var(--ls-primary-text-color);
+      padding: 4px;
+    }
+    .kef-tocgen-godown {
+      position: fixed;
+      left: 0;
+      bottom: 55px;
+      will-change: transform;
+      background: var(--ls-secondary-background-color);
+      border-radius: 50%;
+      display: none;
+      opacity: 0;
+      transition: opacity ${ICON_TRANSITION_DURATION}ms ease-in-out;
+    }
+    .kef-tocgen-godown:hover {
+      opacity: 1 !important;
+      box-shadow: 0px 2px 4px 0px #ccc;
+    }
+    .kef-tocgen-icon-godown {
       width: 35px;
       height: 35px;
       fill: var(--ls-primary-text-color);
@@ -166,12 +209,44 @@ async function main() {
         resizeObserver.observe(mainContentContainer)
         resizeObserver.observe(contentEl)
       }
-      if (mainContainer.classList.contains("scrollbar-spacing")) {
-        // NOTE: prior v0.5.9
-        mainContainer.addEventListener("scroll", scrollHandler)
-      } else {
-        mainContentContainer.addEventListener("scroll", scrollHandler)
+      mainContentContainer.addEventListener("scroll", backtopScrollHandler)
+    }, 0)
+  }
+
+  if (!logseq.settings?.hideGoDown) {
+    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+
+    logseq.provideUI({
+      key: "kef-tocgen-godown",
+      path: "#app-container",
+      template: `<a title="${
+        lang === "zh-CN" ? "去底部" : "Go Down"
+      }" class="kef-tocgen-godown" data-on-click="godown">${GO_DOWN_ICON}</a>`,
+    })
+
+    // Let godown element get generated first.
+    setTimeout(() => {
+      const godown = parent.document.querySelector(".kef-tocgen-godown")
+      const contentEl = parent.document.querySelector(
+        "div[data-is-global-graph-pages] > div:first-child",
+      )
+      if (contentEl) {
+        resizeObserver = new ResizeObserver(() => {
+          requestAnimationFrame(() => {
+            const contentElRect = contentEl.getBoundingClientRect()
+            const mainContentContainerRect =
+              mainContentContainer.getBoundingClientRect()
+            godown.style.transform = `translateX(${
+              contentElRect.right + 57 < mainContentContainerRect.right
+                ? contentElRect.right + 20
+                : mainContentContainerRect.right - 57
+            }px)`
+          })
+        })
+        resizeObserver.observe(mainContentContainer)
+        resizeObserver.observe(contentEl)
       }
+      mainContentContainer.addEventListener("scroll", godownScrollHandler)
     }, 0)
   }
 
@@ -181,10 +256,8 @@ async function main() {
       observer?.disconnect()
     }
 
-    // NOTE: prior v0.5.9
-    mainContainer.removeEventListener("scroll", scrollHandler)
-
-    mainContentContainer.removeEventListener("scroll", scrollHandler)
+    mainContentContainer.removeEventListener("scroll", backtopScrollHandler)
+    mainContentContainer.removeEventListener("scroll", godownScrollHandler)
 
     resizeObserver?.disconnect()
   })
@@ -227,6 +300,15 @@ async function main() {
         lang == "zh-CN"
           ? "如果不想要“滚动回页面顶部”这个功能的话可以通过这个设置关闭。"
           : 'You can use this setting to disable the "Back to Top" functionality.',
+    },
+    {
+      key: "hideGoDown",
+      type: "boolean",
+      default: false,
+      description:
+        lang == "zh-CN"
+          ? "如果不想要“去页面底部”这个功能的话可以通过这个设置关闭。"
+          : 'You can use this setting to disable the "Go Down" functionality.',
     },
     {
       key: "noPageJump",
@@ -522,15 +604,17 @@ async function getCurrentPageName() {
 const model = {
   backtop() {
     const mainContainer = parent.document.getElementById("main-container")
-    if (mainContainer.classList.contains("scrollbar-spacing")) {
-      // NOTE prior v0.5.9
-      mainContainer.scroll({ top: 0 })
-    } else {
-      const mainContentContainer = parent.document.getElementById(
-        "main-content-container",
-      )
-      mainContentContainer.scroll({ top: 0 })
-    }
+    const mainContentContainer = parent.document.getElementById(
+      "main-content-container",
+    )
+    mainContentContainer.scroll({ top: 0 })
+  },
+  godown() {
+    const mainContainer = parent.document.getElementById("main-container")
+    const mainContentContainer = parent.document.getElementById(
+      "main-content-container",
+    )
+    mainContentContainer.scroll({ top: mainContentContainer.scrollHeight })
   },
 }
 
