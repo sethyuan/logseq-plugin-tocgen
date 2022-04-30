@@ -21,7 +21,7 @@ export default function TocGen({
   const [childrenCollapsed, setChildrenCollapsed] = useDependentState(
     () =>
       blocks.reduce((status, block) => {
-        status[block.id] = logseq.settings?.defaultCollpased ?? false
+        status[block.id] = logseq.settings?.defaultCollapsed ?? false
         return status
       }, {}),
     [],
