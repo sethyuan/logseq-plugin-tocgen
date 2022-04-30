@@ -359,7 +359,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
 
   if (HeadingTypes[headingType] == null) {
     logseq.provideUI({
-      key: "error",
+      key: `error-${slot}`,
       slot,
       template: `<div id="${id}" style="color:#f00">[${
         lang === "zh-CN"
@@ -380,7 +380,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
 
   if (name != null && root == null) {
     logseq.provideUI({
-      key: "error",
+      key: `error-${slot}`,
       slot,
       template: `<div id="${id}" style="color:#f00">[${
         lang === "zh-CN" ? "页面/块不存在！" : "Page/Block not found!"
@@ -391,7 +391,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   }
 
   logseq.provideUI({
-    key: "toc",
+    key: `toc-${slot}`,
     slot,
     template: `<div id="${id}"></div>`,
     reset: true,
