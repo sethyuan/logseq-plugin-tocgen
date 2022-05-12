@@ -24,7 +24,7 @@ export default function TocGen({
         status[block.id] = logseq.settings?.defaultCollapsed ?? false
         return status
       }, {}),
-    [],
+    [blocks],
   )
   const page = useMemo(async () => {
     if (root.page) {
