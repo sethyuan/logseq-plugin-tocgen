@@ -328,7 +328,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const [type] = args
   if (type.trim() !== ":tocgen") return
 
-  const renderered = parent.document.getElementById(slot).childElementCount > 0
+  const renderered = parent.document.getElementById(slot)?.childElementCount > 0
   if (renderered) return
 
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()

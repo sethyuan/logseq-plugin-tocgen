@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks"
-import { cls, useDependentState } from "reactutils"
+import { cls } from "reactutils"
 import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import { ConfigContext } from "./ConfigProvider.jsx"
@@ -15,7 +15,7 @@ export default function Block({
   onCollapseChange,
 }) {
   const [content, setContent] = useState("")
-  const [childrenCollapsed, setChildrenCollapsed] = useDependentState(
+  const [childrenCollapsed, setChildrenCollapsed] = useState(
     () =>
       block.children.reduce((status, block) => {
         status[block.id] = logseq.settings?.defaultCollapsed ?? false
@@ -23,6 +23,17 @@ export default function Block({
       }, {}),
     [block.children],
   )
+
+  useEffect(() => {
+    setChildrenCollapsed((values) =>
+      block.children.reduce((status, block) => {
+        status[block.id] =
+          values[block.id] ?? logseq.settings?.defaultCollapsed ?? false
+        return status
+      }, {}),
+    )
+  }, [block.children])
+
   const { lang } = useContext(ConfigContext)
   const page = useMemo(async () => {
     if (root.page) {

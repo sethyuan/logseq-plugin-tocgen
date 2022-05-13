@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "preact/hooks"
-import { cls, useDependentState } from "reactutils"
+import { cls } from "reactutils"
 import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
@@ -18,14 +18,23 @@ export default function TocGen({
     root.page == null ? root.originalName ?? root.name : "",
   )
   const [collapsed, setCollapsed] = useState(false)
-  const [childrenCollapsed, setChildrenCollapsed] = useDependentState(
-    () =>
+  const [childrenCollapsed, setChildrenCollapsed] = useState(() =>
+    blocks.reduce((status, block) => {
+      status[block.id] = logseq.settings?.defaultCollapsed ?? false
+      return status
+    }, {}),
+  )
+
+  useEffect(() => {
+    setChildrenCollapsed((values) =>
       blocks.reduce((status, block) => {
-        status[block.id] = logseq.settings?.defaultCollapsed ?? false
+        status[block.id] =
+          values[block.id] ?? logseq.settings?.defaultCollapsed ?? false
         return status
       }, {}),
-    [blocks],
-  )
+    )
+  }, [blocks])
+
   const page = useMemo(async () => {
     if (root.page) {
       return await logseq.Editor.getPage(root.page.id)
