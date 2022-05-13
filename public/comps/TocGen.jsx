@@ -10,7 +10,7 @@ export default function TocGen({
   blocks,
   levels,
   headingType,
-  blockToHighlight,
+  blocksToHighlight,
   uuid,
 }) {
   const { lang } = useContext(ConfigContext)
@@ -136,7 +136,7 @@ export default function TocGen({
       <div
         class={cls(
           "kef-tocgen-page",
-          blockToHighlight == null && "kef-tocgen-active-block",
+          blocksToHighlight == null && "kef-tocgen-active-block",
         )}
       >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
@@ -169,7 +169,7 @@ export default function TocGen({
             block={block}
             levels={levels}
             headingType={headingType}
-            blockToHighlight={blockToHighlight}
+            blocksToHighlight={blocksToHighlight}
             hidden={collapsed}
             collapsed={childrenCollapsed[block.id]}
             onCollapseChange={onBlockCollapseChange}

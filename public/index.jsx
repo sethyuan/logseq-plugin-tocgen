@@ -442,7 +442,7 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
         : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
             .children
     const currentBlock = await logseq.Editor.getCurrentBlock()
-    const blockToHighlight = await findBlockToHighlight(
+    const blocksToHighlight = await findBlocksToHighlight(
       currentBlock,
       levels,
       headingType,
@@ -455,7 +455,7 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
           blocks={blocks}
           levels={levels}
           headingType={headingType}
-          blockToHighlight={blockToHighlight}
+          blocksToHighlight={blocksToHighlight}
           uuid={uuid}
         />
       </ConfigProvider>,
@@ -570,7 +570,7 @@ function getBlockEl(node) {
   return node === body ? null : node
 }
 
-async function findBlockToHighlight(block, levels, headingType) {
+async function findBlocksToHighlight(block, levels, headingType) {
   const nodes = []
 
   let temp = block
@@ -590,7 +590,9 @@ async function findBlockToHighlight(block, levels, headingType) {
     index--
   }
 
-  return index < 0 ? null : nodes[index]
+  return index < 0
+    ? null
+    : new Set(nodes.slice(0, index + 1).map((node) => node.id))
 }
 
 async function getCurrentPageName() {

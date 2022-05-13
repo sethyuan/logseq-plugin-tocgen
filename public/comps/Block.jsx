@@ -9,7 +9,7 @@ export default function Block({
   block,
   levels,
   headingType,
-  blockToHighlight,
+  blocksToHighlight,
   hidden,
   collapsed,
   onCollapseChange,
@@ -143,7 +143,7 @@ export default function Block({
       <div
         class={cls(
           "kef-tocgen-block",
-          block.id === blockToHighlight?.id && "kef-tocgen-active-block",
+          blocksToHighlight?.has(block.id) && "kef-tocgen-active-block",
         )}
       >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
@@ -180,7 +180,7 @@ export default function Block({
               block={subBlock}
               levels={levels}
               headingType={headingType}
-              blockToHighlight={blockToHighlight}
+              blocksToHighlight={blocksToHighlight}
               hidden={collapsed}
               collapsed={childrenCollapsed[subBlock.id]}
               onCollapseChange={onBlockCollapseChange}
