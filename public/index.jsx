@@ -479,7 +479,7 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
 
         for (const node of mutation.addedNodes) {
           if (
-            node.className === "flex-1 w-full" ||
+            node.className === "flex flex-row" ||
             node.className === "block-children-container flex" ||
             node.classList?.contains("block-editor") ||
             node.classList?.contains("ls-block")

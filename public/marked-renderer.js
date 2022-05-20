@@ -1,5 +1,8 @@
 import { marked } from "marked"
 
+const footnoteRegex = /\[\^[^\]]*\]/g
+const highlightRegex = /==([^=]*)==|\^\^([^\^]*)\^\^/g
+
 function htmlDecode(str) {
   if (str.length === 0) {
     return ""
@@ -58,14 +61,25 @@ const renderer = {
 }
 
 const tokenizer = {
-  link: (src) => {
-    if (src.startsWith("[^") && src.endsWith("]")) {
+  inlineText: (src) => {
+    if (footnoteRegex.test(src)) {
+      const text = src.replace(footnoteRegex, "")
       return {
         type: "text",
         raw: src,
-        text: src,
+        text,
       }
     }
+
+    if (highlightRegex.test(src)) {
+      const text = src.replace(highlightRegex, "$1$2")
+      return {
+        type: "text",
+        raw: src,
+        text,
+      }
+    }
+
     return false
   },
 }
