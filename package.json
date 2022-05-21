@@ -7,9 +7,8 @@
     "icon": "./icon.png"
   },
   "scripts": {
-    "start": "wmr",
-    "build": "wmr build",
-    "serve": "wmr serve"
+    "build": "rollup -c",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@logseq/libs": "^0.0.1-alpha.35",
@@ -19,6 +18,11 @@
     "reactutils": "^5.10.0"
   },
   "devDependencies": {
-    "wmr": "^3.7.2"
+    "@rollup/plugin-alias": "^3.1.9",
+    "@rollup/plugin-html": "^0.2.4",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@swc/core": "^1.2.187",
+    "rollup": "^2.74.1",
+    "rollup-plugin-swc3": "^0.3.0"
   }
 }
