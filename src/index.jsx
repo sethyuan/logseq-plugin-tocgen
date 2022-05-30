@@ -102,6 +102,7 @@ async function main() {
       font-size: 0.8em;
       margin-left: 6px;
       color: var(--ls-icon-color);
+      vertical-align: text-bottom;
     }
     .kef-tocgen-to:hover {
       color: var(--ls-link-ref-text-color);
