@@ -1,8 +1,8 @@
-import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks"
+import { t } from "logseq-l10n"
+import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { cls } from "reactutils"
 import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
-import { ConfigContext } from "./ConfigProvider.jsx"
 
 export default function Block({
   root,
@@ -34,7 +34,6 @@ export default function Block({
     )
   }, [block.children])
 
-  const { lang } = useContext(ConfigContext)
   const page = useMemo(async () => {
     if (root.page) {
       return await logseq.Editor.getPage(root.page.id)
@@ -163,7 +162,7 @@ export default function Block({
         ></span>
         {!logseq.settings?.noPageJump && (
           <button class="kef-tocgen-to" onClick={goTo}>
-            {lang === "zh-CN" ? "页面" : "page"}
+            {t("page")}
           </button>
         )}
       </div>

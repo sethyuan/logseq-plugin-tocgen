@@ -1,8 +1,9 @@
 import "@logseq/libs"
+import { setup, t } from "logseq-l10n"
 import { render } from "preact"
 import { debounce } from "rambdax"
-import ConfigProvider from "./comps/ConfigProvider.jsx"
 import TocGen from "./comps/TocGen.jsx"
+import zhCN from "./translations/zh-CN.json"
 import { HeadingTypes } from "./utils.js"
 
 const observers = {}
@@ -56,7 +57,11 @@ const godownScrollHandler = debounce((e) => {
 }, 50)
 
 async function main() {
-  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+  await setup({
+    urlTemplate:
+      "https://raw.githubusercontent.com/sethyuan/logseq-plugin-tocgen/master/src/translations/${locale}.json",
+    builtinTranslations: { "zh-CN": zhCN },
+  })
 
   logseq.provideStyle(`
     .kef-tocgen-page {
@@ -115,7 +120,7 @@ async function main() {
       visibility: hidden;
     }
     .kef-tocgen-noactivepage::before {
-      content: "${lang === "zh-CN" ? "无活动页面" : "No active page"}";
+      content: "${t("No active page")}";
     }
 
     .kef-tocgen-backtop {
@@ -178,14 +183,12 @@ async function main() {
   )
 
   if (!logseq.settings?.hideBackTop) {
-    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-
     logseq.provideUI({
       key: "kef-tocgen-backtop",
       path: "#app-container",
-      template: `<a title="${
-        lang === "zh-CN" ? "回到顶部" : "Back to Top"
-      }" class="kef-tocgen-backtop" data-on-click="backtop">${BACK_TOP_ICON}</a>`,
+      template: `<a title="${t(
+        "Back to Top",
+      )}" class="kef-tocgen-backtop" data-on-click="backtop">${BACK_TOP_ICON}</a>`,
     })
 
     // Let backtop element get generated first.
@@ -215,14 +218,12 @@ async function main() {
   }
 
   if (!logseq.settings?.hideGoDown) {
-    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-
     logseq.provideUI({
       key: "kef-tocgen-godown",
       path: "#app-container",
-      template: `<a title="${
-        lang === "zh-CN" ? "去底部" : "Go Down"
-      }" class="kef-tocgen-godown" data-on-click="godown">${GO_DOWN_ICON}</a>`,
+      template: `<a title="${t(
+        "Go Down",
+      )}" class="kef-tocgen-godown" data-on-click="godown">${GO_DOWN_ICON}</a>`,
     })
 
     // Let godown element get generated first.
@@ -268,19 +269,15 @@ async function main() {
       key: "defaultLevels",
       type: "number",
       default: 1,
-      description:
-        lang === "zh-CN"
-          ? "默认创建目录的级数，创建目录时没有指定级数时会使用此设置。"
-          : "It defines how many levels a TOC contains by default if not specified when the TOC is created.",
+      description: t(
+        "It defines how many levels a TOC contains by default if not specified when the TOC is created.",
+      ),
     },
     {
       key: "defaultCollapsed",
       type: "boolean",
       default: false,
-      description:
-        lang == "zh-CN"
-          ? "默认目录是否为折叠状态。"
-          : "It defines whether TOC is collapsed by default.",
+      description: t("It defines whether TOC is collapsed by default."),
     },
     {
       key: "defaultHeadingType",
@@ -288,37 +285,33 @@ async function main() {
       enumChoices: ["any", "h"],
       enumPicker: "select",
       default: "any",
-      description:
-        lang == "zh-CN"
-          ? '默认识别的标题类型。可以指定"any"，代表任何块都可作为标题识别；"h"代表仅 H1-Hn 块可作为标题识别。'
-          : 'It defines what kind of blocks can be recognized as a heading. "any" means that any block will do；"h" means that only H1-Hn blocks are accepted as headings.',
+      description: t(
+        'It defines what kind of blocks can be recognized as a heading. "any" means that any block will do；"h" means that only H1-Hn blocks are accepted as headings.',
+      ),
     },
     {
       key: "hideBackTop",
       type: "boolean",
       default: false,
-      description:
-        lang == "zh-CN"
-          ? "如果不想要“滚动回页面顶部”这个功能的话可以通过这个设置关闭。"
-          : 'You can use this setting to disable the "Back to Top" functionality.',
+      description: t(
+        'You can use this setting to disable the "Back to Top" functionality.',
+      ),
     },
     {
       key: "hideGoDown",
       type: "boolean",
       default: false,
-      description:
-        lang == "zh-CN"
-          ? "如果不想要“去页面底部”这个功能的话可以通过这个设置关闭。"
-          : 'You can use this setting to disable the "Go Down" functionality.',
+      description: t(
+        'You can use this setting to disable the "Go Down" functionality.',
+      ),
     },
     {
       key: "noPageJump",
       type: "boolean",
       default: false,
-      description:
-        lang == "zh-CN"
-          ? '设置为true在目录中就不会有"页面"链接了。'
-          : 'Set this to true and you will not see the "page" link in TOC.',
+      description: t(
+        'Set this to true and you will not see the "page" link in TOC.',
+      ),
     },
   ])
 
@@ -332,7 +325,6 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const renderered = parent.document.getElementById(slot)?.childElementCount > 0
   if (renderered) return
 
-  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
   const nameArg = !args[1] || args[1] === "$1" ? "" : args[1].trim()
   const isBlock = nameArg?.startsWith("((")
   const name =
@@ -362,11 +354,9 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     logseq.provideUI({
       key: `error-${slot}`,
       slot,
-      template: `<div id="${id}" style="color:#f00">[${
-        lang === "zh-CN"
-          ? "标题类型需为 any 或 h！"
-          : 'Heading type must be "any" or "h"!'
-      }]</div>`,
+      template: `<div id="${id}" style="color:#f00">[${t(
+        'Heading type must be "any" or "h"!',
+      )}]</div>`,
       reset: true,
     })
     return
@@ -383,9 +373,9 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     logseq.provideUI({
       key: `error-${slot}`,
       slot,
-      template: `<div id="${id}" style="color:#f00">[${
-        lang === "zh-CN" ? "页面/块不存在！" : "Page/Block not found!"
-      }]</div>`,
+      template: `<div id="${id}" style="color:#f00">[${t(
+        "Page/Block not found!",
+      )}]</div>`,
       reset: true,
     })
     return
@@ -404,10 +394,10 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   // Let div root element get generated first.
   setTimeout(async () => {
     if (root != null) {
-      await observeAndGenerate(id, root, levels, headingType, lang, uuid)
+      await observeAndGenerate(id, root, levels, headingType, uuid)
     }
     if (nameArg === CURRENT) {
-      observePageViewChange(id, levels, headingType, lang, uuid)
+      observePageViewChange(id, levels, headingType, uuid)
       if (name == null) {
         const rootEl = parent.document.getElementById(id)
         render(<div class="kef-tocgen-noactivepage" />, rootEl)
@@ -416,7 +406,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   }, 0)
 }
 
-async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
+async function observeAndGenerate(id, root, levels, headingType, uuid) {
   const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
@@ -450,16 +440,14 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
     )
 
     render(
-      <ConfigProvider lang={lang}>
-        <TocGen
-          root={root}
-          blocks={blocks}
-          levels={levels}
-          headingType={headingType}
-          blocksToHighlight={blocksToHighlight}
-          uuid={uuid}
-        />
-      </ConfigProvider>,
+      <TocGen
+        root={root}
+        blocks={blocks}
+        levels={levels}
+        headingType={headingType}
+        blocksToHighlight={blocksToHighlight}
+        uuid={uuid}
+      />,
       rootEl,
     )
     return true
@@ -508,20 +496,18 @@ async function observeAndGenerate(id, root, levels, headingType, lang, uuid) {
       : root.children
 
   render(
-    <ConfigProvider lang={lang}>
-      <TocGen
-        root={root}
-        blocks={blocks}
-        levels={levels}
-        headingType={headingType}
-        uuid={uuid}
-      />
-    </ConfigProvider>,
+    <TocGen
+      root={root}
+      blocks={blocks}
+      levels={levels}
+      headingType={headingType}
+      uuid={uuid}
+    />,
     rootEl,
   )
 }
 
-function observePageViewChange(id, levels, headingType, lang, uuid) {
+function observePageViewChange(id, levels, headingType, uuid) {
   const rootEl = parent.document.getElementById(id)
 
   pageObserver = new MutationObserver(async (mutationList) => {
@@ -546,7 +532,7 @@ function observePageViewChange(id, levels, headingType, lang, uuid) {
           }
           observers[id]?.disconnect()
           observers[id] = undefined
-          await observeAndGenerate(id, root, levels, headingType, lang, uuid)
+          await observeAndGenerate(id, root, levels, headingType, uuid)
           break
         }
       }

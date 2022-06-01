@@ -1,6 +1,6 @@
 {
   "name": "logseq-plugin-tocgen",
-  "version": "1.15.3",
+  "version": "1.15.4",
   "main": "dist/index.html",
   "logseq": {
     "id": "_sethyuan-logseq-tocgen",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@logseq/libs": "^0.0.1-alpha.35",
+    "logseq-l10n": "^0.1.0",
     "marked": "^4.0.16",
     "preact": "^10.6.4",
     "rambdax": "^8.0.0",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.9",
     "@rollup/plugin-html": "^0.2.4",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@swc/core": "^1.2.187",
     "rollup": "^2.74.1",

@@ -1,9 +1,9 @@
-import { useContext, useEffect, useMemo, useState } from "preact/hooks"
+import { t } from "logseq-l10n"
+import { useEffect, useMemo, useState } from "preact/hooks"
 import { cls } from "reactutils"
 import { HeadingTypes, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
-import { ConfigContext } from "./ConfigProvider.jsx"
 
 export default function TocGen({
   root,
@@ -13,7 +13,6 @@ export default function TocGen({
   blocksToHighlight,
   uuid,
 }) {
-  const { lang } = useContext(ConfigContext)
   const [name, setName] = useState(() =>
     root.page == null ? root.originalName ?? root.name : "",
   )
@@ -124,11 +123,7 @@ export default function TocGen({
   }
 
   if (blocks == null) {
-    return (
-      <div style={{ color: "#f00" }}>
-        {lang === "zh-CN" ? "页面/块不存在！" : "Page/Block not found!"}
-      </div>
-    )
+    return <div style={{ color: "#f00" }}>{t("Page/Block not found!")}</div>
   }
 
   return (
@@ -153,7 +148,7 @@ export default function TocGen({
         ></span>
         {root.page != null && !logseq.settings?.noPageJump && (
           <button class="kef-tocgen-to" onClick={goToPage}>
-            {lang === "zh-CN" ? "页面" : "page"}
+            {t("page")}
           </button>
         )}
       </div>
