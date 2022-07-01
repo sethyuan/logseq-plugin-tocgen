@@ -27,7 +27,8 @@ export async function parseContent(content) {
   // Replace block refs with their content.
   let match
   while ((match = /\(\(([^\)]+)\)\)/g.exec(content)) != null) {
-    const [start, end] = match.indices[0]
+    const start = match.index
+    const end = start + match[0].length
     const refUUID = match[1]
     const refBlock = await logseq.Editor.getBlock(refUUID)
     const refContent = await parseContent(refBlock.content)
