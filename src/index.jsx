@@ -274,10 +274,12 @@ async function main() {
       ),
     },
     {
-      key: "defaultCollapsed",
-      type: "boolean",
-      default: false,
-      description: t("It defines whether TOC is collapsed by default."),
+      key: "defaultExpansionLevel",
+      type: "number",
+      default: 1,
+      description: t(
+        "It defines to which level the TOC is expanded to by default.",
+      ),
     },
     {
       key: "defaultHeadingType",
