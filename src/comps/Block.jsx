@@ -44,7 +44,7 @@ export default function Block({
     }
   }, [root.name, root.page?.id])
   const subblocksRef = useRef()
-  const [noChildren, setNoChildren] = useState(false)
+  const [noChildren, setNoChildren] = useState(true)
 
   useEffect(() => {
     ;(async () => {
@@ -53,11 +53,22 @@ export default function Block({
   }, [block])
 
   useEffect(() => {
-    const val = subblocksRef.current?.childElementCount <= 1
-    if (noChildren !== val) {
-      setNoChildren(val)
+    if (subblocksRef.current == null) return
+
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (mutation.addedNodes.length > 0) {
+          observer.disconnect()
+          setNoChildren(false)
+        }
+      }
+    })
+    observer.observe(subblocksRef.current, { childList: true })
+
+    return () => {
+      observer.disconnect()
     }
-  })
+  }, [content])
 
   async function goTo(e) {
     if (e.shiftKey) {
