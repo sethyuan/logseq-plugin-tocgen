@@ -53,22 +53,12 @@ export default function Block({
   }, [block])
 
   useEffect(() => {
-    if (subblocksRef.current == null) return
-
-    const observer = new MutationObserver((mutationsList) => {
-      for (const mutation of mutationsList) {
-        if (mutation.addedNodes.length > 0) {
-          observer.disconnect()
-          setNoChildren(false)
-        }
+    setTimeout(() => {
+      if (subblocksRef.current?.childElementCount > 1) {
+        setNoChildren(false)
       }
-    })
-    observer.observe(subblocksRef.current, { childList: true })
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [content])
+    }, 50);
+  }, [])
 
   async function goTo(e) {
     if (e.shiftKey) {
