@@ -142,7 +142,8 @@ export default function TocGen({
           />
         </button>
         <span
-          className="inline"
+          class={cls("inline", root.page == null ? "page" : "block")}
+          data-ref={root.page == null ? root.name : root.uuid}
           onClick={goTo}
           dangerouslySetInnerHTML={{ __html: name }}
         ></span>

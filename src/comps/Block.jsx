@@ -57,7 +57,7 @@ export default function Block({
       if (subblocksRef.current?.childElementCount > 1) {
         setNoChildren(false)
       }
-    }, 50);
+    }, 50)
   }, [])
 
   async function goTo(e) {
@@ -160,6 +160,7 @@ export default function Block({
         </button>
         <span
           class="kef-tocgen-into inline"
+          data-ref={block.uuid}
           onClick={goInto}
           dangerouslySetInnerHTML={{ __html: content }}
         ></span>
