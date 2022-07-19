@@ -57,8 +57,8 @@ export default function Block({
       if (subblocksRef.current?.childElementCount > 1) {
         setNoChildren(false)
       }
-    }, 50)
-  }, [])
+    }, 20)
+  }, [collapsed])
 
   async function goTo(e) {
     if (e.shiftKey) {
