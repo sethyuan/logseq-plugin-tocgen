@@ -1,8 +1,8 @@
 # logseq-plugin-tocgen
 
-在任何地方生成任一页面/块的目录，通过它你可以快速访问页面/块内容。同时提供了滚动回页面顶部的功能。
+在任何地方生成任一页面/块的目录，通过它你可以快速访问页面/块内容。同时提供了滚动回页面顶部和底部的功能。注意目录是根据块层级来生成的。
 
-Generate a TOC of any page/block anywhere and quickly access the page/block's content. A back to top button is also provided.
+Generate a TOC of any page/block anywhere and quickly access the page/block's content. Buttons that go to top and bottom are also provided. Notice that the TOC is generated based on block levels.
 
 ## 使用展示 (Usage)
 
