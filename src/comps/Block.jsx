@@ -120,8 +120,9 @@ export default function Block({
 
   if (hidden) return null
 
-  // Hide empty blocks and render/macro blocks.
+  // Hide blocks with 'toc:: no' property, empty blocks and render/macro blocks.
   if (
+    block.properties?.toc === "no" ||
     !content ||
     /^\s*{{/.test(content) ||
     (headingType === HeadingTypes.h &&
@@ -138,7 +139,8 @@ export default function Block({
           (subblock) =>
             subblock.content.startsWith("#") || subblock.properties?.heading,
         )
-      : block.children.length > 0)
+      : block.children.filter((subblock) => subblock.properties?.toc !== "no")
+          .length > 0)
 
   return (
     <>
