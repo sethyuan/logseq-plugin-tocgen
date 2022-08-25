@@ -61,7 +61,7 @@ const renderer = {
 }
 
 const tokenizer = {
-  inlineText: (src) => {
+  inlineText(src) {
     if (footnoteRegex.test(src)) {
       const text = src.replace(footnoteRegex, "")
       return {
@@ -70,16 +70,18 @@ const tokenizer = {
         text,
       }
     }
-
+    return false
+  },
+  emStrong(src) {
     if (highlightRegex.test(src)) {
       const text = src.replace(highlightRegex, "$1$2")
       return {
-        type: "text",
+        type: "em",
         raw: src,
         text,
+        tokens: this.lexer.inlineTokens(text, []),
       }
     }
-
     return false
   },
 }
