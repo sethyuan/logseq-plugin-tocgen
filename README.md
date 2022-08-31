@@ -59,7 +59,7 @@ If you want to generate a TOC that dynamically changes according to what page yo
 
 If there is a block that you don't want it to appear in TOC, you can give it a `toc:: no` block property.
 
-## 自定义样式 (Syle Customization)
+## 自定义样式 (Style Customization)
 
 你可以通过以下几个 CSS 类来自定义样式，`kef-tocgen-page` 对应页面，`kef-tocgen-block` 对应块，`.kef-tocgen-active-block` 对应编辑中的块。参照 Logseq 自定义样式的文档操作，将内容放在`custom.css`中即可。
 
