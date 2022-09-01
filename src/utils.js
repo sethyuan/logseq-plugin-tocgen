@@ -62,3 +62,7 @@ export async function hash(text) {
     .join("")
   return hashed
 }
+
+export function isHeading(block) {
+  return /^#+ /.test(block.content) || block.properties?.heading
+}

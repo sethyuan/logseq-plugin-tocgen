@@ -1,7 +1,7 @@
 import { t } from "logseq-l10n"
 import { useEffect, useMemo, useState } from "preact/hooks"
 import { cls } from "reactutils"
-import { HeadingTypes, parseContent } from "../utils.js"
+import { HeadingTypes, isHeading, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
 
@@ -91,11 +91,7 @@ export default function TocGen({
           !childrenCollapsed[block.id] &&
           block.level < levels &&
           (headingType === HeadingTypes.h
-            ? block.children.some(
-                (subblock) =>
-                  subblock.content.startsWith("#") ||
-                  subblock.properties?.heading,
-              )
+            ? block.children.some((subblock) => isHeading(subblock))
             : block.children.length > 0),
       )
     ) {

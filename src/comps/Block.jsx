@@ -1,7 +1,7 @@
 import { t } from "logseq-l10n"
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { cls } from "reactutils"
-import { HeadingTypes, parseContent } from "../utils.js"
+import { HeadingTypes, isHeading, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 
 export default function Block({
@@ -87,11 +87,7 @@ export default function Block({
           !childrenCollapsed[block.id] &&
           block.level < levels &&
           (headingType === HeadingTypes.h
-            ? block.children.some(
-                (subblock) =>
-                  subblock.content.startsWith("#") ||
-                  subblock.properties?.heading,
-              )
+            ? block.children.some((subblock) => isHeading(subblock))
             : block.children.length > 0),
       )
     ) {
@@ -125,9 +121,7 @@ export default function Block({
     block.properties?.toc === "no" ||
     !content ||
     /^\s*{{/.test(content) ||
-    (headingType === HeadingTypes.h &&
-      !block.content.startsWith("#") &&
-      !block.properties?.heading)
+    (headingType === HeadingTypes.h && !isHeading(block))
   )
     return null
 
@@ -135,10 +129,7 @@ export default function Block({
     collapsed &&
     block.level < levels &&
     (headingType === HeadingTypes.h
-      ? block.children.some(
-          (subblock) =>
-            subblock.content.startsWith("#") || subblock.properties?.heading,
-        )
+      ? block.children.some((subblock) => isHeading(subblock))
       : block.children.filter((subblock) => subblock.properties?.toc !== "no")
           .length > 0)
 

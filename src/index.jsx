@@ -4,7 +4,7 @@ import { render } from "preact"
 import { debounce } from "rambdax"
 import TocGen from "./comps/TocGen.jsx"
 import zhCN from "./translations/zh-CN.json"
-import { HeadingTypes } from "./utils.js"
+import { HeadingTypes, isHeading } from "./utils.js"
 
 const observers = {}
 let resizeObserver = null
@@ -72,7 +72,7 @@ async function main() {
       color: var(--ls-link-ref-text-color);
     }
     .kef-tocgen-block {
-      line-height: 1.7;
+      line-height: 1.7em;
     }
     .kef-tocgen-block-children {
       margin-left: 14px;
@@ -107,7 +107,7 @@ async function main() {
       font-size: 0.8em;
       margin-left: 6px;
       color: var(--ls-icon-color);
-      vertical-align: text-bottom;
+      vertical-align: middle;
     }
     .kef-tocgen-to:hover {
       color: var(--ls-link-ref-text-color);
@@ -574,7 +574,7 @@ async function findBlocksToHighlight(block, levels, headingType) {
   while (
     headingType === HeadingTypes.h &&
     index >= 0 &&
-    !(nodes[index].content.startsWith("#") || nodes[index].properties?.heading)
+    !isHeading(nodes[index])
   ) {
     index--
   }
