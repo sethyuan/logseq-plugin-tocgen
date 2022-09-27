@@ -19,7 +19,7 @@ export default function Block({
     () =>
       block.children.reduce((status, block) => {
         status[block.id] =
-          (logseq.settings?.defaultExpansionLevel ?? 1) <= block.level
+          +(logseq.settings?.defaultExpansionLevel ?? 1) <= block.level
         return status
       }, {}),
     [block.children],
@@ -30,7 +30,7 @@ export default function Block({
       block.children.reduce((status, block) => {
         status[block.id] =
           values[block.id] ??
-          (logseq.settings?.defaultExpansionLevel ?? 1) <= block.level
+          +(logseq.settings?.defaultExpansionLevel ?? 1) <= block.level
         return status
       }, {}),
     )

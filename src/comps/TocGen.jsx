@@ -16,10 +16,12 @@ export default function TocGen({
   const [name, setName] = useState(() =>
     root.page == null ? root.originalName ?? root.name : "",
   )
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(
+    +(logseq.settings?.defaultExpansionLevel ?? 1) === 0,
+  )
   const [childrenCollapsed, setChildrenCollapsed] = useState(() =>
     blocks.reduce((status, block) => {
-      status[block.id] = (logseq.settings?.defaultExpansionLevel ?? 1) <= 1
+      status[block.id] = +(logseq.settings?.defaultExpansionLevel ?? 1) <= 1
       return status
     }, {}),
   )
@@ -28,7 +30,8 @@ export default function TocGen({
     setChildrenCollapsed((values) =>
       blocks.reduce((status, block) => {
         status[block.id] =
-          values[block.id] ?? (logseq.settings?.defaultExpansionLevel ?? 1) <= 1
+          values[block.id] ??
+          +(logseq.settings?.defaultExpansionLevel ?? 1) <= 1
         return status
       }, {}),
     )
