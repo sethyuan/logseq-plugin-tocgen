@@ -71,9 +71,6 @@ async function main() {
       cursor: pointer;
       color: var(--ls-link-ref-text-color);
     }
-    .kef-tocgen-block {
-      line-height: 1.7em;
-    }
     .kef-tocgen-block-children {
       margin-left: 14px;
       position: relative;
@@ -99,6 +96,7 @@ async function main() {
     }
     .kef-tocgen-into {
       cursor: pointer;
+      vertical-align: middle;
     }
     .kef-tocgen-into:hover {
       color: var(--ls-link-ref-text-color);
