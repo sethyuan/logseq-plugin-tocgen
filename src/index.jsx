@@ -6,14 +6,14 @@ import TocGen from "./comps/TocGen.jsx"
 import zhCN from "./translations/zh-CN.json"
 import { HeadingTypes, isHeading } from "./utils.js"
 
-const observers = {}
-let resizeObserver = null
-let pageObserver = null
-
 const BACK_TOP_ICON = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4076" width="200" height="200"><path d="M526.848 202.24c-4.096-4.096-9.216-6.144-14.848-6.144s-11.264 2.048-14.848 6.144L342.016 356.864c-8.192 8.192-8.192 21.504 0 30.208 8.192 8.192 21.504 8.192 30.208 0L512 247.296l139.776 139.776c4.096 4.096 9.728 6.144 14.848 6.144 5.632 0 10.752-2.048 14.848-6.144 8.192-8.192 8.192-21.504 0-30.208L526.848 202.24zM116.224 595.968h90.624v231.936h42.496V595.968h90.624v-42.496H115.712v42.496z m458.24-42.496h-112.64c-13.824 0-27.136 5.12-37.376 15.36s-15.36 24.064-15.36 37.376v168.448c0 13.824 5.12 27.136 15.36 37.376s24.064 15.36 37.376 15.36h112.64c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376V606.208c0-13.824-5.12-27.136-15.36-37.376s-23.552-15.36-37.376-15.36z m10.752 221.696c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072h-112.64c-2.048 0-5.12-0.512-7.68-3.072s-3.072-5.632-3.072-7.68V606.72c0-2.048 0.512-5.12 3.072-7.68s5.632-3.072 7.68-3.072h112.64c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v168.448z m307.2-205.824c-10.24-10.24-24.064-15.36-37.376-15.36H709.632v274.432h42.496v-120.32H855.04c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376v-48.128c0-14.336-5.12-27.648-15.36-37.888z m-27.136 84.992c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072H751.104v-69.12H855.04c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v47.616h-0.512z" p-id="4077"></path></svg>`
 const GO_DOWN_ICON = `<svg t="1651059361900" class="kef-tocgen-icon-godown" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12219" width="200" height="200"><path d="M830.24 340.688l11.328 11.312a16 16 0 0 1 0 22.624L530.448 685.76a16 16 0 0 1-22.64 0L196.688 374.624a16 16 0 0 1 0-22.624l11.312-11.312a16 16 0 0 1 22.624 0l288.496 288.496 288.512-288.496a16 16 0 0 1 22.624 0z" p-id="12220"></path></svg>`
 const ICON_TRANSITION_DURATION = 200
 const CURRENT = "*"
+
+const macroObservers = {}
+const routeOffHooks = {}
+let resizeObserver = null
 
 const backtopScrollHandler = debounce((e) => {
   const scrollTop = e.target.scrollTop
@@ -251,8 +251,10 @@ async function main() {
   }
 
   logseq.beforeunload(() => {
-    pageObserver?.disconnect()
-    for (const observer of Object.values(observers)) {
+    for (const off of Object.values(routeOffHooks)) {
+      off?.()
+    }
+    for (const observer of Object.values(macroObservers)) {
       observer?.disconnect()
     }
 
@@ -394,29 +396,57 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   // Let div root element get generated first.
   setTimeout(async () => {
     if (root != null) {
-      await observeAndGenerate(id, root, levels, headingType, uuid)
+      await observeAndRender(id, root, levels, headingType)
     }
     if (nameArg === CURRENT) {
-      observePageViewChange(id, levels, headingType, uuid)
+      observeRoute(id, levels, headingType)
       if (name == null) {
-        const rootEl = parent.document.getElementById(id)
-        render(<div class="kef-tocgen-noactivepage" />, rootEl)
+        renderNoActivePage(id)
       }
     }
   }, 0)
 }
 
-async function observeAndGenerate(id, root, levels, headingType, uuid) {
+async function renderTOC(root, levels, headingType, rootEl) {
+  const blocks =
+    root.page == null
+      ? await logseq.Editor.getPageBlocksTree(root.name)
+      : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
+          .children
+  const currentBlock = await logseq.Editor.getCurrentBlock()
+  const blocksToHighlight = await findBlocksToHighlight(
+    currentBlock,
+    levels,
+    headingType,
+  )
+  render(
+    <TocGen
+      root={root}
+      blocks={blocks}
+      levels={levels}
+      headingType={headingType}
+      blocksToHighlight={blocksToHighlight}
+    />,
+    rootEl,
+  )
+}
+
+function renderNoActivePage(id) {
+  const rootEl = parent.document.getElementById(id)
+  render(<div class="kef-tocgen-noactivepage" />, rootEl)
+}
+
+async function observeAndRender(id, root, levels, headingType) {
   const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
     const blockEl = getBlockEl(node)
-    if (blockEl == null) return false
+    if (blockEl == null) return
 
     const blockID = blockEl.getAttribute("blockid")
     const block = await logseq.Editor.getBlock(blockID)
-    if (block == null) return false
-    if (root.page == null && block.page.id !== root.id) return false
+    if (block == null) return
+    if (root.page == null && block.page.id !== root.id) return
     if (root.page != null) {
       // Keep checking parent until root is found or no more parent.
       let b = block
@@ -424,36 +454,13 @@ async function observeAndGenerate(id, root, levels, headingType, uuid) {
         if (b.parent.id === root.id) break
         b = await logseq.Editor.getBlock(b.parent.id)
       }
-      if (b == null) return false
+      if (b == null) return
     }
 
-    const blocks =
-      root.page == null
-        ? await logseq.Editor.getPageBlocksTree(root.name)
-        : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
-            .children
-    const currentBlock = await logseq.Editor.getCurrentBlock()
-    const blocksToHighlight = await findBlocksToHighlight(
-      currentBlock,
-      levels,
-      headingType,
-    )
-
-    render(
-      <TocGen
-        root={root}
-        blocks={blocks}
-        levels={levels}
-        headingType={headingType}
-        blocksToHighlight={blocksToHighlight}
-        uuid={uuid}
-      />,
-      rootEl,
-    )
-    return true
+    await renderTOC(root, levels, headingType, rootEl)
   }
 
-  if (observers[id] == null) {
+  if (macroObservers[id] == null) {
     const observer = new MutationObserver(async (mutationList) => {
       let block = null
       loop: for (const mutation of mutationList) {
@@ -462,7 +469,7 @@ async function observeAndGenerate(id, root, levels, headingType, uuid) {
           (rootEl == null || !rootEl.isConnected)
         ) {
           observer.disconnect()
-          observers[id] = undefined
+          macroObservers[id] = undefined
           return
         }
 
@@ -482,67 +489,39 @@ async function observeAndGenerate(id, root, levels, headingType, uuid) {
         await renderIfPageBlock(block)
       }
     })
-    observers[id] = observer
-
+    macroObservers[id] = observer
     observer.observe(parent.document.body, {
       subtree: true,
       childList: true,
     })
   }
 
-  const blocks =
-    root.page == null
-      ? await logseq.Editor.getPageBlocksTree(root.name)
-      : root.children
-
-  render(
-    <TocGen
-      root={root}
-      blocks={blocks}
-      levels={levels}
-      headingType={headingType}
-      uuid={uuid}
-    />,
-    rootEl,
-  )
+  await renderTOC(root, levels, headingType, rootEl)
 }
 
-function observePageViewChange(id, levels, headingType, uuid) {
-  const rootEl = parent.document.getElementById(id)
-
-  pageObserver = new MutationObserver(async (mutationList) => {
-    for (const mutation of mutationList) {
-      if (
-        mutation.removedNodes.length > 0 &&
-        (rootEl == null || !rootEl.isConnected)
-      ) {
-        pageObserver.disconnect()
+function observeRoute(id, levels, headingType) {
+  if (routeOffHooks[id] == null) {
+    routeOffHooks[id] = logseq.App.onRouteChanged(async ({ template }) => {
+      const rootEl = parent.document.getElementById(id)
+      if (rootEl == null || !rootEl.isConnected) {
+        routeOffHooks[id]?.()
+        routeOffHooks[id] = undefined
         return
       }
 
-      for (const node of mutation.addedNodes) {
-        if (
-          node.classList &&
-          node.classList.contains("page") &&
-          node.classList.contains("relative")
-        ) {
-          let root = await logseq.Editor.getCurrentPage()
-          if (root.page != null) {
-            root = await logseq.Editor.getPage(root.page.id)
-          }
-          observers[id]?.disconnect()
-          observers[id] = undefined
-          await observeAndGenerate(id, root, levels, headingType, uuid)
-          break
+      if (template === "/") {
+        renderNoActivePage(id)
+      } else {
+        let root = await logseq.Editor.getCurrentPage()
+        if (root.page != null) {
+          root = await logseq.Editor.getPage(root.page.id)
         }
+        macroObservers[id]?.disconnect()
+        macroObservers[id] = undefined
+        await observeAndRender(id, root, levels, headingType)
       }
-    }
-  })
-
-  pageObserver.observe(parent.document.body, {
-    subtree: true,
-    childList: true,
-  })
+    })
+  }
 }
 
 function getBlockEl(node) {

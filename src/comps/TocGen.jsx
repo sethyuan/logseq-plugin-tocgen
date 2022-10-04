@@ -11,7 +11,6 @@ export default function TocGen({
   levels,
   headingType,
   blocksToHighlight,
-  uuid,
 }) {
   const [name, setName] = useState(() =>
     root.page == null ? root.originalName ?? root.name : "",
