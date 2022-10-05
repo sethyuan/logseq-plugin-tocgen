@@ -63,9 +63,14 @@ export async function hash(text) {
   return hashed
 }
 
-export function isHeading(block) {
-  return /^#+ /.test(block.content) || block.properties?.heading
-}
-
 export const EMBED_REGEX =
   /^\s*(?:\[\[\.embed(-children)?\]\])?{{embed (\[\[[^\]]+\]\]|\(\([^\)]+\)\))\s*}}/
+
+export function isHeading(block) {
+  return (
+    /^#+ /.test(block.content) ||
+    block.properties?.heading ||
+    EMBED_REGEX.test(block.content) ||
+    block.page == null
+  )
+}

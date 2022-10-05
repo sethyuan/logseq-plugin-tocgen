@@ -421,17 +421,13 @@ const embedContext = {
   },
 }
 
-async function renderTOC(id, root, levels, headingType, startingNode) {
+async function renderTOC(id, root, levels, headingType) {
   const blocks =
     root.page == null
       ? await logseq.Editor.getPageBlocksTree(root.name)
       : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
           .children
-  const blocksToHighlight = await findBlocksToHighlight(
-    startingNode,
-    levels,
-    headingType,
-  )
+  const blocksToHighlight = await findBlocksToHighlight(levels, headingType)
   render(
     <EmbedContext.Provider value={embedContext}>
       <TocGen
@@ -456,8 +452,7 @@ async function observeAndRender(id, root, levels, headingType) {
   const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
-    const startingNode = node
-    const roots = [root, ...embedRoots[id]]
+    const roots = [root, ...(embedRoots[id] ?? [])]
 
     while (true) {
       const blockEl = node?.closest("[blockid]")
@@ -472,7 +467,7 @@ async function observeAndRender(id, root, levels, headingType) {
           (r.page == null && block.page?.id === r.id) ||
           (r.page != null && block.id === r.id)
         ) {
-          await renderTOC(id, root, levels, headingType, startingNode)
+          await renderTOC(id, root, levels, headingType)
           return
         }
       }
@@ -495,10 +490,13 @@ async function observeAndRender(id, root, levels, headingType) {
       }
 
       loop: for (const mutation of mutationList) {
-        if (!mutation.target.classList.contains("editor-wrapper")) continue
-
         for (const node of mutation.addedNodes) {
-          if (node.classList?.contains("block-editor")) {
+          if (
+            node.className === "flex flex-row" ||
+            node.className === "block-children-container flex" ||
+            node.classList?.contains("block-editor") ||
+            node.classList?.contains("ls-block")
+          ) {
             block = node
             break loop
           }
@@ -543,8 +541,9 @@ function observeRoute(id, levels, headingType) {
   }
 }
 
-async function findBlocksToHighlight(node, levels, headingType) {
+async function findBlocksToHighlight(levels, headingType) {
   const nodes = []
+  let node = parent.document.activeElement
 
   while (true) {
     const blockEl = node?.closest("[blockid],.embed-page")

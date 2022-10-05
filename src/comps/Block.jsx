@@ -85,7 +85,7 @@ export default function Block({
       if (subblocksRef.current?.childElementCount > 1) {
         setNoChildren(false)
       }
-    }, 20)
+    }, 50)
   }, [collapsed])
 
   useEffect(() => {
@@ -148,7 +148,7 @@ export default function Block({
         (block) =>
           !childrenCollapsed[block.id] &&
           blockLevel < levels &&
-          (/^\s*\[\[\.embed-children\]\]{{embed /.test(block.content) ||
+          (/{{embed /.test(block.content) ||
             (headingType === HeadingTypes.h
               ? block.children.some((subblock) => isHeading(subblock))
               : block.children.length > 0)),
@@ -192,8 +192,6 @@ export default function Block({
     onCollapseChange?.(block.id, blockCollapsed)
   }
 
-  if (hidden) return null
-
   if (embed) {
     if (embedChildren) {
       return embed.children.map((child) => (
@@ -228,6 +226,8 @@ export default function Block({
       )
     }
   }
+
+  if (hidden) return null
 
   // Hide blocks with 'toc:: no' property, empty blocks and render/macro blocks.
   if (

@@ -14,6 +14,13 @@ Generate a TOC of any page/block anywhere and quickly access the page/block's co
 
 ![demo](demo_inline_toc.gif)
 
+支持生成嵌入块/页面的目录 (Support generating TOC entries for embedded blocks/pages)
+
+![demo](demo_embed.gif)
+
+上面的演示用到了 [Another Embed](https://github.com/sethyuan/logseq-plugin-another-embed) 插件，推荐大家尝试。缩短 namespace 的效果的脚本是我写的 `custom.js` 的一部分，代码可在[这里](https://gist.github.com/sethyuan/4ea9ed4305d0145ad565b2128ae6cef4)获取。
+The demo above used the plugin [Another Embed](https://github.com/sethyuan/logseq-plugin-another-embed), you're welcome to try it. The namespace collapsing behavior is part of my `custom.js`, you can find the code [here](https://gist.github.com/sethyuan/4ea9ed4305d0145ad565b2128ae6cef4).
+
 ## 使用示例 (Examples)
 
 ```
