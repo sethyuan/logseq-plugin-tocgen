@@ -3,8 +3,9 @@ import { setup, t } from "logseq-l10n"
 import { render } from "preact"
 import { debounce } from "rambdax"
 import TocGen from "./comps/TocGen.jsx"
+import { EmbedContext } from "./contexts"
 import zhCN from "./translations/zh-CN.json"
-import { HeadingTypes, isHeading } from "./utils.js"
+import { EMBED_REGEX, HeadingTypes, isHeading } from "./utils.js"
 
 const BACK_TOP_ICON = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4076" width="200" height="200"><path d="M526.848 202.24c-4.096-4.096-9.216-6.144-14.848-6.144s-11.264 2.048-14.848 6.144L342.016 356.864c-8.192 8.192-8.192 21.504 0 30.208 8.192 8.192 21.504 8.192 30.208 0L512 247.296l139.776 139.776c4.096 4.096 9.728 6.144 14.848 6.144 5.632 0 10.752-2.048 14.848-6.144 8.192-8.192 8.192-21.504 0-30.208L526.848 202.24zM116.224 595.968h90.624v231.936h42.496V595.968h90.624v-42.496H115.712v42.496z m458.24-42.496h-112.64c-13.824 0-27.136 5.12-37.376 15.36s-15.36 24.064-15.36 37.376v168.448c0 13.824 5.12 27.136 15.36 37.376s24.064 15.36 37.376 15.36h112.64c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376V606.208c0-13.824-5.12-27.136-15.36-37.376s-23.552-15.36-37.376-15.36z m10.752 221.696c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072h-112.64c-2.048 0-5.12-0.512-7.68-3.072s-3.072-5.632-3.072-7.68V606.72c0-2.048 0.512-5.12 3.072-7.68s5.632-3.072 7.68-3.072h112.64c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v168.448z m307.2-205.824c-10.24-10.24-24.064-15.36-37.376-15.36H709.632v274.432h42.496v-120.32H855.04c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376v-48.128c0-14.336-5.12-27.648-15.36-37.888z m-27.136 84.992c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072H751.104v-69.12H855.04c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v47.616h-0.512z" p-id="4077"></path></svg>`
 const GO_DOWN_ICON = `<svg t="1651059361900" class="kef-tocgen-icon-godown" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12219" width="200" height="200"><path d="M830.24 340.688l11.328 11.312a16 16 0 0 1 0 22.624L530.448 685.76a16 16 0 0 1-22.64 0L196.688 374.624a16 16 0 0 1 0-22.624l11.312-11.312a16 16 0 0 1 22.624 0l288.496 288.496 288.512-288.496a16 16 0 0 1 22.624 0z" p-id="12220"></path></svg>`
@@ -14,6 +15,8 @@ const CURRENT = "*"
 const macroObservers = {}
 const routeOffHooks = {}
 let resizeObserver = null
+// A map of all roots to observe to for a given slot.
+const embedRoots = {}
 
 const backtopScrollHandler = debounce((e) => {
   const scrollTop = e.target.scrollTop
@@ -57,11 +60,7 @@ const godownScrollHandler = debounce((e) => {
 }, 50)
 
 async function main() {
-  await setup({
-    urlTemplate:
-      "https://raw.githubusercontent.com/sethyuan/logseq-plugin-tocgen/master/src/translations/${locale}.json",
-    builtinTranslations: { "zh-CN": zhCN },
-  })
+  await setup({ builtinTranslations: { "zh-CN": zhCN } })
 
   logseq.provideStyle(`
     .kef-tocgen-page {
@@ -86,12 +85,11 @@ async function main() {
       cursor: pointer;
     }
     .kef-tocgen-block-collapse:hover {
-      border-left: 4px solid var(--ls-primary-text-color);
-      left: -11px;
+      border-left: 2px solid var(--ls-primary-text-color);
+      left: -10px;
       border-radius: 2px;
     }
     .kef-tocgen-active-block {
-      font-weight: 600;
       color: var(--ls-link-text-color);
     }
     .kef-tocgen-into {
@@ -368,7 +366,7 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     name == null
       ? null
       : isBlock
-      ? await logseq.Editor.getBlock(name, { includeChildren: true })
+      ? await logseq.Editor.getBlock(name)
       : await logseq.Editor.getPage(name)
 
   if (name != null && root == null) {
@@ -407,27 +405,45 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   }, 0)
 }
 
-async function renderTOC(root, levels, headingType, rootEl) {
+const embedContext = {
+  pushRoot(slot, embedRoot) {
+    if (embedRoots[slot] == null) {
+      embedRoots[slot] = []
+    }
+    if (embedRoots[slot].every((r) => r.id !== embedRoot.id)) {
+      embedRoots[slot].push(embedRoot)
+    }
+  },
+
+  removeRoot(slot, id) {
+    if (embedRoots[slot] == null) return
+    embedRoots[slot] = embedRoots[slot].filter((r) => r.id !== id)
+  },
+}
+
+async function renderTOC(id, root, levels, headingType, startingNode) {
   const blocks =
     root.page == null
       ? await logseq.Editor.getPageBlocksTree(root.name)
       : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
           .children
-  const currentBlock = await logseq.Editor.getCurrentBlock()
   const blocksToHighlight = await findBlocksToHighlight(
-    currentBlock,
+    startingNode,
     levels,
     headingType,
   )
   render(
-    <TocGen
-      root={root}
-      blocks={blocks}
-      levels={levels}
-      headingType={headingType}
-      blocksToHighlight={blocksToHighlight}
-    />,
-    rootEl,
+    <EmbedContext.Provider value={embedContext}>
+      <TocGen
+        slot={id}
+        root={root}
+        blocks={blocks}
+        levels={levels}
+        headingType={headingType}
+        blocksToHighlight={blocksToHighlight}
+      />
+    </EmbedContext.Provider>,
+    parent.document.getElementById(id),
   )
 }
 
@@ -440,46 +456,49 @@ async function observeAndRender(id, root, levels, headingType) {
   const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
-    const blockEl = getBlockEl(node)
-    if (blockEl == null) return
+    const startingNode = node
+    const roots = [root, ...embedRoots[id]]
 
-    const blockID = blockEl.getAttribute("blockid")
-    const block = await logseq.Editor.getBlock(blockID)
-    if (block == null) return
-    if (root.page == null && block.page.id !== root.id) return
-    if (root.page != null) {
-      // Keep checking parent until root is found or no more parent.
-      let b = block
-      while (b != null) {
-        if (b.parent.id === root.id) break
-        b = await logseq.Editor.getBlock(b.parent.id)
+    while (true) {
+      const blockEl = node?.closest("[blockid]")
+      if (blockEl == null) break
+      const block = await logseq.Editor.getBlock(
+        blockEl.getAttribute("blockid"),
+      )
+      if (block == null) break
+
+      for (const r of roots) {
+        if (
+          (r.page == null && block.page?.id === r.id) ||
+          (r.page != null && block.id === r.id)
+        ) {
+          await renderTOC(id, root, levels, headingType, startingNode)
+          return
+        }
       }
-      if (b == null) return
-    }
 
-    await renderTOC(root, levels, headingType, rootEl)
+      if (roots.length === 1 && root.page == null && !blockEl.dataset.embed)
+        break
+
+      node = blockEl.parentElement
+    }
   }
 
   if (macroObservers[id] == null) {
     const observer = new MutationObserver(async (mutationList) => {
       let block = null
+
+      if (rootEl == null || !rootEl.isConnected) {
+        observer.disconnect()
+        macroObservers[id] = undefined
+        return
+      }
+
       loop: for (const mutation of mutationList) {
-        if (
-          mutation.removedNodes.length > 0 &&
-          (rootEl == null || !rootEl.isConnected)
-        ) {
-          observer.disconnect()
-          macroObservers[id] = undefined
-          return
-        }
+        if (!mutation.target.classList.contains("editor-wrapper")) continue
 
         for (const node of mutation.addedNodes) {
-          if (
-            node.className === "flex flex-row" ||
-            node.className === "block-children-container flex" ||
-            node.classList?.contains("block-editor") ||
-            node.classList?.contains("ls-block")
-          ) {
+          if (node.classList?.contains("block-editor")) {
             block = node
             break loop
           }
@@ -496,7 +515,7 @@ async function observeAndRender(id, root, levels, headingType) {
     })
   }
 
-  await renderTOC(root, levels, headingType, rootEl)
+  await renderTOC(id, root, levels, headingType)
 }
 
 function observeRoute(id, levels, headingType) {
@@ -524,28 +543,25 @@ function observeRoute(id, levels, headingType) {
   }
 }
 
-function getBlockEl(node) {
-  const body = document.body
-  while (
-    node != null &&
-    node.getAttribute?.("blockid") == null &&
-    node !== body
-  ) {
-    node = node.parentElement
-  }
-  return node === body ? null : node
-}
-
-async function findBlocksToHighlight(block, levels, headingType) {
+async function findBlocksToHighlight(node, levels, headingType) {
   const nodes = []
 
-  let temp = block
-  while (temp?.parent != null) {
-    nodes.unshift(temp)
-    temp = await logseq.Editor.getBlock(temp.parent.id)
+  while (true) {
+    const blockEl = node?.closest("[blockid],.embed-page")
+    if (blockEl == null) break
+    const block = blockEl.classList.contains("embed-page")
+      ? await retrievePageBlock(blockEl)
+      : await logseq.Editor.getBlock(blockEl.getAttribute("blockid"))
+    if (block == null) break
+
+    if (!EMBED_REGEX.test(block.content ?? "")) {
+      nodes.unshift(block)
+    }
+
+    node = blockEl.parentElement
   }
 
-  if (nodes.length === 1) return null
+  if (nodes.length <= 1) return null
 
   let index = nodes.length <= levels ? nodes.length - 2 : levels - 1
   while (
@@ -559,6 +575,12 @@ async function findBlocksToHighlight(block, levels, headingType) {
   return index < 0
     ? null
     : new Set(nodes.slice(0, index + 1).map((node) => node.id))
+}
+
+async function retrievePageBlock(pageEl) {
+  const dataRefEl = pageEl.querySelector(".embed-header [data-ref]")
+  if (dataRefEl == null) return null
+  return await logseq.Editor.getPage(dataRefEl.dataset.ref)
 }
 
 async function getCurrentPageName() {

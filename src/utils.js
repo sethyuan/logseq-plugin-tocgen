@@ -66,3 +66,6 @@ export async function hash(text) {
 export function isHeading(block) {
   return /^#+ /.test(block.content) || block.properties?.heading
 }
+
+export const EMBED_REGEX =
+  /^\s*(?:\[\[\.embed(-children)?\]\])?{{embed (\[\[[^\]]+\]\]|\(\([^\)]+\)\))\s*}}/

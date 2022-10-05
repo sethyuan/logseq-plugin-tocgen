@@ -331,10 +331,10 @@ lodash-es@4.17.21:
   resolved "https://registry.npmmirror.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"
   integrity sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==
 
-logseq-l10n@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.npmmirror.com/logseq-l10n/-/logseq-l10n-0.1.0.tgz#e34c6a87819d13b821d83f04b7f321526f0fb917"
-  integrity sha512-XRSXdnoCEMAh1r/ndvo9sb8Gjjv7HN6xmoMAWDCb6oOv7wcGZf9GqI0GbsOAp42Bn43UHaBf5z5IFx+kSCcSQA==
+logseq-l10n@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.npmmirror.com/logseq-l10n/-/logseq-l10n-0.2.0.tgz#642ba00f8738dc20dfa983fe223465b5318a6204"
+  integrity sha512-exBSvxVijlAW6Zy6eYRWGroJL3qxAouCZqSQzAeIRuoIU8nA0vN2S2+5slvWTFM159hlqhtdJXqudwgCs4y2Vg==
 
 lower-case@^2.0.2:
   version "2.0.2"

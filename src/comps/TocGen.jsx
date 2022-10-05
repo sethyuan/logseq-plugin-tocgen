@@ -6,6 +6,7 @@ import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
 
 export default function TocGen({
+  slot,
   root,
   blocks,
   levels,
@@ -159,6 +160,7 @@ export default function TocGen({
         {blocks.map((block) => (
           <Block
             key={block.id}
+            slot={slot}
             root={root}
             block={block}
             levels={levels}
