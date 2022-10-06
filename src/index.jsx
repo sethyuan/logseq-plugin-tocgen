@@ -560,6 +560,18 @@ async function findBlocksToHighlight(levels, headingType) {
     node = blockEl.parentElement
   }
 
+  if (nodes.length > 0) {
+    let block = nodes.shift()
+    while (block != null) {
+      nodes.unshift(block)
+      block =
+        block.parent &&
+        (block.parent.id === block.page?.id
+          ? await logseq.Editor.getPage(block.page.id)
+          : await logseq.Editor.getBlock(block.parent.id))
+    }
+  }
+
   if (nodes.length <= 1) return null
 
   let index = nodes.length <= levels ? nodes.length - 2 : levels - 1

@@ -130,7 +130,8 @@ export default function TocGen({
       <div
         class={cls(
           "kef-tocgen-page",
-          blocksToHighlight == null && "kef-tocgen-active-block",
+          (blocksToHighlight == null || blocksToHighlight.has(root.id)) &&
+            "kef-tocgen-active-block",
         )}
       >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
