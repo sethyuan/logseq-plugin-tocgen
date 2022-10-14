@@ -81,7 +81,7 @@ async function main() {
       left: -10px;
       width: 4px;
       height: calc(100% - 10px);
-      border-left: 1px solid rgba(229,229,229,var(--tw-border-opacity));
+      border-left: 1px solid var(--ls-guideline-color);
       cursor: pointer;
     }
     .kef-tocgen-block-collapse:hover {
