@@ -89,12 +89,15 @@ async function main() {
       left: -10px;
       border-radius: 2px;
     }
+    .kef-tocgen-block {
+      display: flex;
+      align-items: flex-start;
+    }
     .kef-tocgen-active-block {
       color: var(--ls-link-text-color);
     }
     .kef-tocgen-into {
       cursor: pointer;
-      vertical-align: middle;
     }
     .kef-tocgen-into:hover {
       color: var(--ls-link-ref-text-color);
@@ -103,7 +106,6 @@ async function main() {
       font-size: 0.8em;
       margin-left: 6px;
       color: var(--ls-icon-color);
-      vertical-align: middle;
     }
     .kef-tocgen-to:hover {
       color: var(--ls-link-ref-text-color);
@@ -111,6 +113,9 @@ async function main() {
     .kef-tocgen-arrow {
       padding-right: 4px;
       margin-right: 3px;
+    }
+    .kef-tocgen-arrow:hover {
+      color: var(--ls-link-ref-text-color);
     }
     .kef-tocgen-arrow-hidden {
       visibility: hidden;

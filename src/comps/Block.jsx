@@ -264,17 +264,19 @@ export default function Block({
             }}
           />
         </button>
-        <span
-          class="kef-tocgen-into inline"
-          data-ref={block.uuid}
-          onClick={goInto}
-          dangerouslySetInnerHTML={{ __html: content }}
-        ></span>
-        {!logseq.settings?.noPageJump && (
-          <button class="kef-tocgen-to" onClick={goTo}>
-            {t("page")}
-          </button>
-        )}
+        <div>
+          <span
+            class="kef-tocgen-into inline"
+            data-ref={block.uuid}
+            onClick={goInto}
+            dangerouslySetInnerHTML={{ __html: content }}
+          ></span>
+          {!logseq.settings?.noPageJump && (
+            <button class="kef-tocgen-to" onClick={goTo}>
+              {t("page")}
+            </button>
+          )}
+        </div>
       </div>
       {blockLevel < levels && (
         <div class="kef-tocgen-block-children" ref={subblocksRef}>
