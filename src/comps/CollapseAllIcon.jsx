@@ -4,7 +4,7 @@ export default function CollapseAllIcon({ style, ...attrs }) {
   return (
     <ExpandAllIcon
       {...attrs}
-      style={{ transform: "rotate(180deg) translateY(2px)", ...style }}
+      style={{ transform: "rotate(180deg) translateY(1px)", ...style }}
     />
   )
 }

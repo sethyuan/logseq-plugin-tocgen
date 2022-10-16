@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@logseq/libs": "^0.0.9",
+    "immer": "^9.0.15",
     "logseq-l10n": "^0.2.0",
     "marked": "^4.0.19",
     "preact": "^10.9.0",
@@ -23,6 +24,7 @@
     "@rollup/plugin-html": "^0.2.4",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^5.0.0",
     "@swc/core": "^1.2.187",
     "rollup": "^2.74.1",
     "rollup-plugin-swc3": "^0.3.0"

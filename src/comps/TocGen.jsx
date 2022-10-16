@@ -1,8 +1,13 @@
+import produce from "immer"
 import { t } from "logseq-l10n"
-import { useEffect, useMemo, useState } from "preact/hooks"
+import { useCallback, useEffect, useState } from "preact/hooks"
 import { cls } from "reactutils"
-import { CollapseContext } from "../contexts.js"
-import { parseContent } from "../utils.js"
+import {
+  EMBED_REGEX,
+  HeadingTypes,
+  isHeading,
+  parseContent,
+} from "../libs/utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
 import CollapseAllIcon from "./CollapseAllIcon.jsx"
@@ -15,131 +20,204 @@ export default function TocGen({
   levels,
   headingType,
   blocksToHighlight,
+  pushRoot,
+  removeRoot,
 }) {
-  const [name, setName] = useState(() =>
-    root.page == null ? root.originalName ?? root.name : "",
-  )
+  const [data, setData] = useState()
+  const [page, setPage] = useState()
 
-  const [collapseState, setCollapseState] = useState(() => {
-    const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
-    return { [root.id]: expansionLevel === 0 }
-  })
-  const collapseContextValue = useMemo(
-    () => [collapseState, setCollapseState],
-    [collapseState, setCollapseState],
-  )
+  const constructData = useCallback(
+    async (src, level, maxLevel, expansionLevel, headingType, collapsings) => {
+      if (level > maxLevel) return null
 
-  const page = useMemo(async () => {
-    if (root.page) {
-      return await logseq.Editor.getPage(root.page.id)
-    } else {
-      return root
-    }
-  }, [root.name, root.page?.id])
+      const content =
+        src.page == null
+          ? src.originalName ?? src.name
+          : await parseContent(src.content)
+
+      if (level > 0 && !isValid(src, content, headingType)) return null
+
+      const embedMatch = src.content?.match(EMBED_REGEX)
+      if (embedMatch) {
+        const [, childrenFlag, idStr] = embedMatch
+        const isPage = idStr.startsWith("[[")
+        const id = idStr.substring(2, idStr.length - 2)
+        const embedded = isPage
+          ? await (async () => {
+              const page = await logseq.Editor.getPage(id)
+              page.children = await logseq.Editor.getPageBlocksTree(page.name)
+              return page
+            })()
+          : await logseq.Editor.getBlock(id, { includeChildren: true })
+
+        if (childrenFlag) {
+          return (
+            await Promise.all(
+              embedded.children.map((child) =>
+                constructData(
+                  child,
+                  level,
+                  maxLevel,
+                  expansionLevel,
+                  headingType,
+                  collapsings,
+                ),
+              ),
+            )
+          ).filter((x) => x != null)
+        } else {
+          return await constructData(
+            embedded,
+            level,
+            maxLevel,
+            expansionLevel,
+            headingType,
+            collapsings,
+          )
+        }
+      }
+
+      const children = []
+      for (const child of src.children) {
+        const ret = await constructData(
+          child,
+          level + 1,
+          maxLevel,
+          expansionLevel,
+          headingType,
+          collapsings,
+        )
+        if (ret != null) {
+          children.push(...(Array.isArray(ret) ? ret : [ret]))
+        }
+      }
+
+      return {
+        id: src.id,
+        uuid: src.uuid,
+        name: src.name,
+        content,
+        collapsed: collapsings[src.id] ?? level >= expansionLevel,
+        children,
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
-    if (root.page != null) {
-      ;(async () => {
-        setName(await parseContent(root.content))
-      })()
-    } else {
-      setName(root.originalName ?? root.name)
-    }
+    ;(async () => {
+      setPage(
+        root.page == null ? root : await logseq.Editor.getPage(root.page.id),
+      )
 
-    const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
-    setCollapseState({ [root.id]: expansionLevel === 0 })
-  }, [root])
+      const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
+      root.children = blocks
+      const collapsings = {}
+      if (data != null) {
+        toCollapsingMap(collapsings, data)
+      }
+      setData(
+        await constructData(
+          root,
+          0,
+          levels,
+          expansionLevel,
+          headingType,
+          collapsings,
+        ),
+      )
+    })()
+  }, [root, blocks])
 
-  function goTo(e) {
-    if (e.shiftKey) {
-      logseq.Editor.openInRightSidebar(root.uuid)
-    } else {
-      if (root.page == null) {
-        logseq.Editor.scrollToBlockInPage(root.name)
+  const goTo = useCallback(
+    (e) => {
+      if (e.shiftKey) {
+        logseq.Editor.openInRightSidebar(root.uuid)
       } else {
-        logseq.Editor.scrollToBlockInPage(root.uuid)
-      }
-    }
-  }
-
-  async function goToPage(e) {
-    if (e.shiftKey) {
-      logseq.Editor.openInRightSidebar((await page).uuid)
-    } else {
-      logseq.Editor.scrollToBlockInPage((await page).name, root.uuid)
-    }
-  }
-
-  function toggleCollapsed() {
-    setCollapseState((old) => {
-      const newValue = { [root.id]: !old[root.id] }
-      return { ...old, ...newValue }
-    })
-  }
-
-  function toggleCollapseChildren() {
-    const children = blocks.filter((block) => collapseState[block.id] != null)
-    const hasCollapsedChild = children.some((child) => collapseState[child.id])
-    if (hasCollapsedChild) {
-      setCollapseState((old) => {
-        const newValues = {}
-        for (const block of children) {
-          newValues[block.id] = false
+        if (root.page == null) {
+          logseq.Editor.scrollToBlockInPage(root.name)
+        } else {
+          logseq.Editor.scrollToBlockInPage(root.uuid)
         }
-        return { ...old, ...newValues }
-      })
-    } else {
-      setCollapseState((old) => {
-        const newValues = {}
-        for (const block of children) {
-          newValues[block.id] = true
+      }
+    },
+    [root],
+  )
+
+  const goToPage = useCallback(
+    (e) => {
+      if (e.shiftKey) {
+        logseq.Editor.openInRightSidebar(page.uuid)
+      } else {
+        logseq.Editor.scrollToBlockInPage(page.name, root.uuid)
+      }
+    },
+    [page, root],
+  )
+
+  const toggleCollapsed = useCallback(() => {
+    setData((data) =>
+      produce(data, (root) => {
+        root.collapsed = !root.collapsed
+      }),
+    )
+  }, [])
+
+  const toggleCollapseChildren = useCallback(() => {
+    setData((data) =>
+      produce(data, (root) => {
+        if (
+          root.children.some(
+            (child) => child.children.length > 0 && child.collapsed,
+          )
+        ) {
+          for (const child of root.children) {
+            child.collapsed = false
+          }
+        } else {
+          for (const child of root.children) {
+            child.collapsed = true
+          }
         }
-        return { ...old, ...newValues }
-      })
-    }
-  }
+      }),
+    )
+  }, [])
 
-  function expandAll() {
-    setCollapseState((old) => {
-      const ret = {}
-      const rootCollapsing = old[root.id]
-      for (const key of Object.keys(old)) {
-        ret[key] = false
-      }
-      ret[root.id] = rootCollapsing
-      return ret
-    })
-  }
+  const expandAll = useCallback(() => {
+    setData((data) =>
+      produce(data, (root) => {
+        const rootCollapsed = root.collapsed
+        setCollapsed(root, false)
+        root.collapsed = rootCollapsed
+      }),
+    )
+  }, [])
 
-  function collapseAll() {
-    setCollapseState((old) => {
-      const ret = {}
-      const rootCollapsing = old[root.id]
-      for (const key of Object.keys(old)) {
-        ret[key] = true
-      }
-      ret[root.id] = rootCollapsing
-      return ret
-    })
-  }
+  const collapseAll = useCallback(() => {
+    setData((data) =>
+      produce(data, (root) => {
+        const rootCollapsed = root.collapsed
+        setCollapsed(root, true)
+        root.collapsed = rootCollapsed
+      }),
+    )
+  }, [])
 
-  if (blocks == null) {
-    return <div style={{ color: "#f00" }}>{t("Page/Block not found!")}</div>
-  }
+  if (data == null || page == null) return null
 
   return (
     <>
       <div
         class={cls(
           "kef-tocgen-page",
-          (blocksToHighlight == null || blocksToHighlight.has(root.id)) &&
+          (blocksToHighlight == null || blocksToHighlight.has(data.id)) &&
             "kef-tocgen-active-block",
         )}
       >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
           <Arrow
             style={{
-              transform: collapseState[root.id] ? null : "rotate(90deg)",
+              transform: data.collapsed ? null : "rotate(90deg)",
             }}
           />
         </button>
@@ -148,42 +226,62 @@ export default function TocGen({
             class={cls("inline", root.page == null ? "page" : "block")}
             data-ref={root.page == null ? root.name : root.uuid}
             onClick={goTo}
-            dangerouslySetInnerHTML={{ __html: name }}
+            dangerouslySetInnerHTML={{ __html: data.content }}
           ></span>
-          {root.page != null && !logseq.settings?.noPageJump && (
-            <button class="kef-tocgen-to" onClick={goToPage}>
-              {t("page")}
-            </button>
-          )}
-          <button style={{ marginLeft: "8px" }} onClick={expandAll}>
+          <button style={{ marginLeft: "6px" }} onClick={expandAll}>
             <ExpandAllIcon />
           </button>
           <button onClick={collapseAll}>
             <CollapseAllIcon />
           </button>
+          {root.page != null && !logseq.settings?.noPageJump && (
+            <button class="kef-tocgen-to" onClick={goToPage}>
+              {t("page")}
+            </button>
+          )}
         </div>
       </div>
-      <CollapseContext.Provider value={collapseContextValue}>
-        {!collapseState[root.id] && (
-          <div className="kef-tocgen-block-children">
-            <div
-              className="kef-tocgen-block-collapse"
-              onClick={toggleCollapseChildren}
+      {!data.collapsed && data.children.length > 0 && (
+        <div className="kef-tocgen-block-children">
+          <div
+            className="kef-tocgen-block-collapse"
+            onClick={toggleCollapseChildren}
+          />
+          {data.children.map((block, i) => (
+            <Block
+              key={block.id}
+              block={block}
+              page={page}
+              blocksToHighlight={blocksToHighlight}
+              path={[i]}
+              setData={setData}
             />
-            {blocks.map((block) => (
-              <Block
-                key={block.id}
-                slot={slot}
-                root={root}
-                block={block}
-                levels={levels}
-                headingType={headingType}
-                blocksToHighlight={blocksToHighlight}
-              />
-            ))}
-          </div>
-        )}
-      </CollapseContext.Provider>
+          ))}
+        </div>
+      )}
     </>
   )
+}
+
+function isValid(block, content, headingType) {
+  return (
+    block.properties?.toc !== "no" &&
+    content &&
+    !/^\s*{{/.test(content) &&
+    (headingType !== HeadingTypes.h || isHeading(block))
+  )
+}
+
+function setCollapsed(node, value) {
+  node.collapsed = value
+  for (const child of node.children) {
+    setCollapsed(child, value)
+  }
+}
+
+function toCollapsingMap(map, node) {
+  map[node.id] = node.collapsed
+  for (const child of node.children) {
+    toCollapsingMap(map, child)
+  }
 }
