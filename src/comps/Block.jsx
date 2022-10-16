@@ -1,7 +1,7 @@
 import { t } from "logseq-l10n"
-import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks"
+import { useContext, useEffect, useMemo, useState } from "preact/hooks"
 import { cls } from "reactutils"
-import { EmbedContext } from "../contexts.js"
+import { CollapseContext, EmbedContext } from "../contexts.js"
 import { EMBED_REGEX, HeadingTypes, isHeading, parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 
@@ -12,23 +12,24 @@ export default function Block({
   levels,
   headingType,
   blocksToHighlight,
-  hidden,
-  collapsed,
-  onCollapseChange,
+  embedId,
+  onEmbedChildToggle,
   levelOffset = 0,
 }) {
   const blockLevel = (block.level ?? 0) + levelOffset
 
   const [content, setContent] = useState("")
+  // Hide blocks with 'toc:: no' property, empty blocks and render/macro blocks.
+  const valid = useMemo(
+    () =>
+      block.properties?.toc !== "no" &&
+      content &&
+      !/^\s*{{/.test(content) &&
+      (headingType !== HeadingTypes.h || isHeading(block)),
+    [block, content, headingType],
+  )
   const [embed, setEmbed] = useState()
   const [embedChildren, setEmbedChildren] = useState(false)
-  const [childrenCollapsed, setChildrenCollapsed] = useState(() =>
-    block.children.reduce((status, block) => {
-      status[block.id] =
-        +(logseq.settings?.defaultExpansionLevel ?? 1) <= blockLevel
-      return status
-    }, {}),
-  )
   const page = useMemo(async () => {
     if (root.page) {
       return await logseq.Editor.getPage(root.page.id)
@@ -36,24 +37,10 @@ export default function Block({
       return root
     }
   }, [root.name, root.page?.id])
-  const subblocksRef = useRef()
-  const [noChildren, setNoChildren] = useState(true)
-
+  const [collapseState, setCollapseState] = useContext(CollapseContext)
   const { pushRoot, removeRoot } = useContext(EmbedContext)
-
-  useEffect(() => {
-    setChildrenCollapsed((values) =>
-      ((embedChildren ? embed.children : undefined) ?? block.children).reduce(
-        (status, block) => {
-          status[block.id] =
-            values[block.id] ??
-            +(logseq.settings?.defaultExpansionLevel ?? 1) <= blockLevel
-          return status
-        },
-        {},
-      ),
-    )
-  }, [block.children, embedChildren, embed, blockLevel])
+  const collapseId = (!onEmbedChildToggle && embedId) || block.id
+  const [childrenFlag, setChildrenFlag] = useState(false)
 
   useEffect(() => {
     ;(async () => {
@@ -72,32 +59,38 @@ export default function Block({
           : await logseq.Editor.getBlock(id, { includeChildren: true })
         setEmbed(embedBlock)
         setEmbedChildren(!!childrenFlag)
+        if (childrenFlag) {
+          setCollapseState((old) => {
+            const expansionLevel = +(
+              logseq.settings?.defaultExpansionLevel ?? 1
+            )
+            const newValue = {
+              [collapseId]: expansionLevel <= blockLevel,
+            }
+            return { ...old, ...newValue }
+          })
+        }
       } else {
         setEmbed()
         setEmbedChildren(false)
         setContent(await parseContent(block.content))
       }
+      setChildrenFlag(false)
+      setTimeout(() => setChildrenFlag(true), 50)
     })()
   }, [block])
 
   useEffect(() => {
-    setTimeout(() => {
-      if (subblocksRef.current?.childElementCount > 1) {
-        setNoChildren(false)
-      }
-    }, 50)
-  }, [collapsed])
-
-  useEffect(() => {
-    if (embedChildren) {
-      setChildrenCollapsed(
-        embed.children.reduce((status, block) => {
-          status[block.id] = collapsed
-          return status
-        }, {}),
-      )
+    if (valid && collapseState[collapseId] == null) {
+      setCollapseState((old) => {
+        const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
+        const newValue = {
+          [collapseId]: expansionLevel <= blockLevel,
+        }
+        return { ...old, ...newValue }
+      })
     }
-  }, [collapsed, embedChildren, embed])
+  }, [valid, collapseState[collapseId]])
 
   useEffect(() => {
     if (embed) {
@@ -110,6 +103,35 @@ export default function Block({
       }
     }
   }, [embed])
+
+  function setBlocksCollapse(blocks, collapse) {
+    setCollapseState((old) => {
+      const newValues = {}
+      for (const block of blocks) {
+        newValues[block.id] = collapse
+      }
+      return { ...old, ...newValues }
+    })
+  }
+
+  useEffect(() => {
+    if (embed?.children) {
+      const children = embed.children.filter(
+        (child) => collapseState[child.id] != null,
+      )
+      if (
+        collapseState[collapseId] &&
+        children.every((child) => !collapseState[child.id])
+      ) {
+        setBlocksCollapse(children, true)
+      } else if (
+        !collapseState[collapseId] &&
+        children.some((child) => collapseState[child.id])
+      ) {
+        setBlocksCollapse(children, false)
+      }
+    }
+  }, [collapseState[collapseId], embed?.children])
 
   async function goTo(e) {
     if (e.shiftKey) {
@@ -139,57 +161,45 @@ export default function Block({
   }
 
   function toggleCollapsed() {
-    onCollapseChange?.(block.id, !collapsed)
-  }
-
-  function toggleCollapseChildren() {
-    if (
-      block.children.some(
-        (block) =>
-          !childrenCollapsed[block.id] &&
-          blockLevel < levels &&
-          (/{{embed /.test(block.content) ||
-            (headingType === HeadingTypes.h
-              ? block.children.some((subblock) => isHeading(subblock))
-              : block.children.length > 0)),
-      )
-    ) {
-      setChildrenCollapsed(
-        block.children.reduce((status, block) => {
-          status[block.id] = true
-          return status
-        }, {}),
-      )
+    if (onEmbedChildToggle) {
+      onEmbedChildToggle(collapseId)
     } else {
-      setChildrenCollapsed(
-        block.children.reduce((status, block) => {
-          status[block.id] = false
-          return status
-        }, {}),
-      )
+      setCollapseState((old) => {
+        const newValue = { [collapseId]: !old[collapseId] }
+        return { ...old, ...newValue }
+      })
     }
   }
 
-  function onBlockCollapseChange(blockId, blockCollapsed) {
-    setChildrenCollapsed((old) => {
-      const newValue = {
-        ...old,
-        [blockId]: blockCollapsed,
-      }
-      if (embedChildren) {
-        const values = Object.values(newValue)
-        if (values.every((t) => t)) {
-          onCollapseChange?.(block.id, true)
-        } else if (values.every((t) => !t)) {
-          onCollapseChange?.(block.id, false)
-        }
-      }
-      return newValue
-    })
+  function toggleCollapseChildren() {
+    const children = block.children.filter(
+      (child) => collapseState[child.id] != null,
+    )
+    const hasCollapsedChild = children.some(
+      (subblock) => collapseState[subblock.id],
+    )
+    if (hasCollapsedChild) {
+      setBlocksCollapse(children, false)
+    } else {
+      setBlocksCollapse(children, true)
+    }
   }
 
-  function onEmbedCollapseChange(embedBlockId, blockCollapsed) {
-    onCollapseChange?.(block.id, blockCollapsed)
+  function toggleEmbedChild(childId) {
+    setCollapseState((old) => {
+      const newChildValue = !old[childId]
+      const children = embed.children
+        .filter((child) => collapseState[child.id] != null)
+        .map((child) =>
+          child.id === childId ? newChildValue : collapseState[child.id],
+        )
+      const someChildIsCollapsed = children.some((collapsed) => collapsed)
+      const newValues = {
+        [collapseId]: someChildIsCollapsed,
+        [childId]: newChildValue,
+      }
+      return { ...old, ...newValues }
+    })
   }
 
   if (embed) {
@@ -203,9 +213,8 @@ export default function Block({
           levels={levels}
           headingType={headingType}
           blocksToHighlight={blocksToHighlight}
-          hidden={hidden}
-          collapsed={childrenCollapsed[child.id]}
-          onCollapseChange={onBlockCollapseChange}
+          embedId={block.id}
+          onEmbedChildToggle={toggleEmbedChild}
           levelOffset={blockLevel}
         />
       ))
@@ -218,33 +227,18 @@ export default function Block({
           levels={levels}
           headingType={headingType}
           blocksToHighlight={blocksToHighlight}
-          hidden={hidden}
-          collapsed={collapsed}
-          onCollapseChange={onEmbedCollapseChange}
+          embedId={block.id}
           levelOffset={blockLevel}
         />
       )
     }
   }
 
-  if (hidden) return null
+  if (!valid) return null
 
-  // Hide blocks with 'toc:: no' property, empty blocks and render/macro blocks.
-  if (
-    block.properties?.toc === "no" ||
-    !content ||
-    /^\s*{{/.test(content) ||
-    (headingType === HeadingTypes.h && !isHeading(block))
+  const hasValidChildren = block.children.some(
+    (subblock) => collapseState[subblock.id] != null,
   )
-    return null
-
-  const arrowCollapsed =
-    collapsed &&
-    blockLevel < levels &&
-    (headingType === HeadingTypes.h
-      ? block.children.some((subblock) => isHeading(subblock))
-      : block.children.filter((subblock) => subblock.properties?.toc !== "no")
-          .length > 0)
 
   return (
     <>
@@ -256,11 +250,9 @@ export default function Block({
       >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
           <Arrow
-            class={cls(
-              !arrowCollapsed && noChildren && "kef-tocgen-arrow-hidden",
-            )}
+            class={!hasValidChildren && "kef-tocgen-arrow-hidden"}
             style={{
-              transform: arrowCollapsed ? null : "rotate(90deg)",
+              transform: collapseState[collapseId] ? null : "rotate(90deg)",
             }}
           />
         </button>
@@ -278,8 +270,8 @@ export default function Block({
           )}
         </div>
       </div>
-      {blockLevel < levels && (
-        <div class="kef-tocgen-block-children" ref={subblocksRef}>
+      {blockLevel < levels && (!childrenFlag || !collapseState[collapseId]) && (
+        <div class="kef-tocgen-block-children">
           <div
             className="kef-tocgen-block-collapse"
             onClick={toggleCollapseChildren}
@@ -293,9 +285,6 @@ export default function Block({
               levels={levels}
               headingType={headingType}
               blocksToHighlight={blocksToHighlight}
-              hidden={collapsed}
-              collapsed={childrenCollapsed[subBlock.id]}
-              onCollapseChange={onBlockCollapseChange}
               levelOffset={levelOffset}
             />
           ))}

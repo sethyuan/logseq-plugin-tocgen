@@ -1,9 +1,12 @@
 import { t } from "logseq-l10n"
 import { useEffect, useMemo, useState } from "preact/hooks"
 import { cls } from "reactutils"
-import { HeadingTypes, isHeading, parseContent } from "../utils.js"
+import { CollapseContext } from "../contexts.js"
+import { parseContent } from "../utils.js"
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
+import CollapseAllIcon from "./CollapseAllIcon.jsx"
+import ExpandAllIcon from "./ExpandAllIcon.jsx"
 
 export default function TocGen({
   slot,
@@ -16,26 +19,15 @@ export default function TocGen({
   const [name, setName] = useState(() =>
     root.page == null ? root.originalName ?? root.name : "",
   )
-  const [collapsed, setCollapsed] = useState(
-    +(logseq.settings?.defaultExpansionLevel ?? 1) === 0,
-  )
-  const [childrenCollapsed, setChildrenCollapsed] = useState(() =>
-    blocks.reduce((status, block) => {
-      status[block.id] = +(logseq.settings?.defaultExpansionLevel ?? 1) <= 1
-      return status
-    }, {}),
-  )
 
-  useEffect(() => {
-    setChildrenCollapsed((values) =>
-      blocks.reduce((status, block) => {
-        status[block.id] =
-          values[block.id] ??
-          +(logseq.settings?.defaultExpansionLevel ?? 1) <= 1
-        return status
-      }, {}),
-    )
-  }, [blocks])
+  const [collapseState, setCollapseState] = useState(() => {
+    const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
+    return { [root.id]: expansionLevel === 0 }
+  })
+  const collapseContextValue = useMemo(
+    () => [collapseState, setCollapseState],
+    [collapseState, setCollapseState],
+  )
 
   const page = useMemo(async () => {
     if (root.page) {
@@ -53,15 +45,10 @@ export default function TocGen({
     } else {
       setName(root.originalName ?? root.name)
     }
-  }, [root])
 
-  function onClick(e) {
-    if (e.shiftKey) {
-      openInSidebar()
-    } else {
-      goTo()
-    }
-  }
+    const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
+    setCollapseState({ [root.id]: expansionLevel === 0 })
+  }, [root])
 
   function goTo(e) {
     if (e.shiftKey) {
@@ -84,41 +71,56 @@ export default function TocGen({
   }
 
   function toggleCollapsed() {
-    setCollapsed((v) => !v)
+    setCollapseState((old) => {
+      const newValue = { [root.id]: !old[root.id] }
+      return { ...old, ...newValue }
+    })
   }
 
   function toggleCollapseChildren() {
-    if (
-      blocks.some(
-        (block) =>
-          !childrenCollapsed[block.id] &&
-          block.level < levels &&
-          (headingType === HeadingTypes.h
-            ? block.children.some((subblock) => isHeading(subblock))
-            : block.children.length > 0),
-      )
-    ) {
-      setChildrenCollapsed(
-        blocks.reduce((status, block) => {
-          status[block.id] = true
-          return status
-        }, {}),
-      )
+    const children = blocks.filter((block) => collapseState[block.id] != null)
+    const hasCollapsedChild = children.some((child) => collapseState[child.id])
+    if (hasCollapsedChild) {
+      setCollapseState((old) => {
+        const newValues = {}
+        for (const block of children) {
+          newValues[block.id] = false
+        }
+        return { ...old, ...newValues }
+      })
     } else {
-      setChildrenCollapsed(
-        blocks.reduce((status, block) => {
-          status[block.id] = false
-          return status
-        }, {}),
-      )
+      setCollapseState((old) => {
+        const newValues = {}
+        for (const block of children) {
+          newValues[block.id] = true
+        }
+        return { ...old, ...newValues }
+      })
     }
   }
 
-  function onBlockCollapseChange(blockId, blockCollapsed) {
-    setChildrenCollapsed((old) => ({
-      ...old,
-      [blockId]: blockCollapsed,
-    }))
+  function expandAll() {
+    setCollapseState((old) => {
+      const ret = {}
+      const rootCollapsing = old[root.id]
+      for (const key of Object.keys(old)) {
+        ret[key] = false
+      }
+      ret[root.id] = rootCollapsing
+      return ret
+    })
+  }
+
+  function collapseAll() {
+    setCollapseState((old) => {
+      const ret = {}
+      const rootCollapsing = old[root.id]
+      for (const key of Object.keys(old)) {
+        ret[key] = true
+      }
+      ret[root.id] = rootCollapsing
+      return ret
+    })
   }
 
   if (blocks == null) {
@@ -137,42 +139,51 @@ export default function TocGen({
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
           <Arrow
             style={{
-              transform: collapsed ? null : "rotate(90deg)",
+              transform: collapseState[root.id] ? null : "rotate(90deg)",
             }}
           />
         </button>
-        <span
-          class={cls("inline", root.page == null ? "page" : "block")}
-          data-ref={root.page == null ? root.name : root.uuid}
-          onClick={goTo}
-          dangerouslySetInnerHTML={{ __html: name }}
-        ></span>
-        {root.page != null && !logseq.settings?.noPageJump && (
-          <button class="kef-tocgen-to" onClick={goToPage}>
-            {t("page")}
+        <div>
+          <span
+            class={cls("inline", root.page == null ? "page" : "block")}
+            data-ref={root.page == null ? root.name : root.uuid}
+            onClick={goTo}
+            dangerouslySetInnerHTML={{ __html: name }}
+          ></span>
+          {root.page != null && !logseq.settings?.noPageJump && (
+            <button class="kef-tocgen-to" onClick={goToPage}>
+              {t("page")}
+            </button>
+          )}
+          <button style={{ marginLeft: "8px" }} onClick={expandAll}>
+            <ExpandAllIcon />
           </button>
+          <button onClick={collapseAll}>
+            <CollapseAllIcon />
+          </button>
+        </div>
+      </div>
+      <CollapseContext.Provider value={collapseContextValue}>
+        {!collapseState[root.id] && (
+          <div className="kef-tocgen-block-children">
+            <div
+              className="kef-tocgen-block-collapse"
+              onClick={toggleCollapseChildren}
+            />
+            {blocks.map((block) => (
+              <Block
+                key={block.id}
+                slot={slot}
+                root={root}
+                block={block}
+                levels={levels}
+                headingType={headingType}
+                blocksToHighlight={blocksToHighlight}
+              />
+            ))}
+          </div>
         )}
-      </div>
-      <div className="kef-tocgen-block-children">
-        <div
-          className="kef-tocgen-block-collapse"
-          onClick={toggleCollapseChildren}
-        />
-        {blocks.map((block) => (
-          <Block
-            key={block.id}
-            slot={slot}
-            root={root}
-            block={block}
-            levels={levels}
-            headingType={headingType}
-            blocksToHighlight={blocksToHighlight}
-            hidden={collapsed}
-            collapsed={childrenCollapsed[block.id]}
-            onCollapseChange={onBlockCollapseChange}
-          />
-        ))}
-      </div>
+      </CollapseContext.Provider>
     </>
   )
 }

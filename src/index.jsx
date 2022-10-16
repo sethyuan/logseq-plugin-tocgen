@@ -65,8 +65,10 @@ async function main() {
   logseq.provideStyle(`
     .kef-tocgen-page {
       line-height: 2;
+      display: flex;
+      align-items: flex-start;
     }
-    .kef-tocgen-page:hover > .inline {
+    .kef-tocgen-page:hover > div > .inline {
       cursor: pointer;
       color: var(--ls-link-ref-text-color);
     }
@@ -106,6 +108,7 @@ async function main() {
       font-size: 0.8em;
       margin-left: 6px;
       color: var(--ls-icon-color);
+      vertical-align: middle;
     }
     .kef-tocgen-to:hover {
       color: var(--ls-link-ref-text-color);
@@ -122,6 +125,11 @@ async function main() {
     }
     .kef-tocgen-noactivepage::before {
       content: "${t("No active page")}";
+    }
+    .kef-tocgen-icon-expand {
+      width: 1em;
+      height: 1em;
+      transform: translateY(-2px);
     }
 
     .kef-tocgen-backtop {
