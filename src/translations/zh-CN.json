@@ -10,5 +10,7 @@
   "Set this to true and you will not see the \"page\" link in TOC.": "设置为true在目录中就不会有\"页面\"链接了。",
   "Heading type must be \"any\" or \"h\"!": "标题类型需为 any 或 h！",
   "Page/Block not found!": "页面/块不存在！",
-  "page": "页面"
+  "page": "页面",
+  "Expand All": "展开全部",
+  "Collapse All": "收起全部"
 }

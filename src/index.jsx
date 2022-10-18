@@ -426,9 +426,9 @@ function pushRoot(slot, embedRoot) {
   }
 }
 
-function removeRoot(slot, id) {
+function removeRoots(slot) {
   if (embedRoots[slot] == null) return
-  embedRoots[slot] = embedRoots[slot].filter((r) => r.id !== id)
+  embedRoots[slot] = undefined
 }
 
 async function renderTOC(id, root, levels, headingType) {
@@ -447,7 +447,7 @@ async function renderTOC(id, root, levels, headingType) {
       headingType={headingType}
       blocksToHighlight={blocksToHighlight}
       pushRoot={pushRoot}
-      removeRoot={removeRoot}
+      removeRoots={removeRoots}
     />,
     parent.document.getElementById(id),
   )

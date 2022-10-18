@@ -21,13 +21,21 @@ export default function TocGen({
   headingType,
   blocksToHighlight,
   pushRoot,
-  removeRoot,
+  removeRoots,
 }) {
   const [data, setData] = useState()
   const [page, setPage] = useState()
 
   const constructData = useCallback(
-    async (src, level, maxLevel, expansionLevel, headingType, collapsings) => {
+    async (
+      src,
+      level,
+      maxLevel,
+      expansionLevel,
+      headingType,
+      collapsings,
+      slot,
+    ) => {
       if (level > maxLevel) return null
 
       const content =
@@ -50,6 +58,8 @@ export default function TocGen({
             })()
           : await logseq.Editor.getBlock(id, { includeChildren: true })
 
+        pushRoot(slot, { id: embedded.id, page: embedded.page ?? embedded })
+
         if (childrenFlag) {
           return (
             await Promise.all(
@@ -61,6 +71,7 @@ export default function TocGen({
                   expansionLevel,
                   headingType,
                   collapsings,
+                  slot,
                 ),
               ),
             )
@@ -73,6 +84,7 @@ export default function TocGen({
             expansionLevel,
             headingType,
             collapsings,
+            slot,
           )
         }
       }
@@ -86,6 +98,7 @@ export default function TocGen({
           expansionLevel,
           headingType,
           collapsings,
+          slot,
         )
         if (ret != null) {
           children.push(...(Array.isArray(ret) ? ret : [ret]))
@@ -110,6 +123,8 @@ export default function TocGen({
         root.page == null ? root : await logseq.Editor.getPage(root.page.id),
       )
 
+      removeRoots(slot)
+
       const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
       root.children = blocks
       const collapsings = {}
@@ -124,10 +139,11 @@ export default function TocGen({
           expansionLevel,
           headingType,
           collapsings,
+          slot,
         ),
       )
     })()
-  }, [root, blocks])
+  }, [root, blocks, slot])
 
   const goTo = useCallback(
     (e) => {
@@ -228,10 +244,14 @@ export default function TocGen({
             onClick={goTo}
             dangerouslySetInnerHTML={{ __html: data.content }}
           ></span>
-          <button style={{ marginLeft: "6px" }} onClick={expandAll}>
+          <button
+            style={{ marginLeft: "6px" }}
+            title={t("Expand All")}
+            onClick={expandAll}
+          >
             <ExpandAllIcon />
           </button>
-          <button onClick={collapseAll}>
+          <button title={t("Collapse All")} onClick={collapseAll}>
             <CollapseAllIcon />
           </button>
           {root.page != null && !logseq.settings?.noPageJump && (
