@@ -77,7 +77,7 @@ export default function TocGen({
             )
           ).filter((x) => x != null)
         } else {
-          return await constructData(
+          const ret = await constructData(
             embedded,
             level,
             maxLevel,
@@ -86,6 +86,8 @@ export default function TocGen({
             collapsings,
             slot,
           )
+          ret.embeddingUUID = src.uuid
+          return ret
         }
       }
 
@@ -222,7 +224,7 @@ export default function TocGen({
   if (data == null || page == null) return null
 
   return (
-    <>
+    <div class="kef-tocgen-container">
       <div
         class={cls(
           "kef-tocgen-page",
@@ -279,7 +281,7 @@ export default function TocGen({
           ))}
         </div>
       )}
-    </>
+    </div>
   )
 }
 

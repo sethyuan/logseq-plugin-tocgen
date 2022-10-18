@@ -62,6 +62,9 @@ async function main() {
   await setup({ builtinTranslations: { "zh-CN": zhCN } })
 
   logseq.provideStyle(`
+    .kef-tocgen-dragging .kef-tocgen-block-container * {
+      pointer-events: none;
+    }
     .kef-tocgen-page {
       line-height: 2;
       display: flex;
@@ -93,6 +96,9 @@ async function main() {
     .kef-tocgen-block {
       display: flex;
       align-items: flex-start;
+      pointer-events: auto !important;
+      border-top: 2px solid transparent;
+      margin-bottom: -2px;
     }
     .kef-tocgen-active-block {
       color: var(--ls-link-text-color);
@@ -129,6 +135,18 @@ async function main() {
       width: 1em;
       height: 1em;
       transform: translateY(-1px);
+    }
+    .kef-tocgen-drag-childholder {
+      pointer-events: auto !important;
+      height: 0;
+      border-top: 2px solid transparent;
+      padding-bottom: 1px;
+      margin-left: 19px;
+    }
+    .kef-tocgen-drag-bottomholder {
+      pointer-events: auto !important;
+      height: 0;
+      border-top: 2px solid transparent;
     }
 
     .kef-tocgen-backtop {

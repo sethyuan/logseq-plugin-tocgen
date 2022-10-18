@@ -72,13 +72,84 @@ export default function Block({
     )
   }, [])
 
+  function onDragStart(e) {
+    e.stopPropagation()
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/plain", block.uuid)
+
+    const clone = e.target.cloneNode(true)
+    clone.id = "kef-tocgen-drag-shadow"
+    clone.style.width = "fit-content"
+    clone.style.background = "#fff"
+    clone.style.transform = "translateZ(-99999px)"
+    parent.document.body.appendChild(clone)
+    e.dataTransfer.setDragImage(clone, 0, 0)
+
+    const appContainer = parent.document.getElementById("app-container")
+    appContainer.classList.add("kef-tocgen-dragging")
+  }
+
+  function onDragEnter(e) {
+    e.stopPropagation()
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+    e.target.style.borderTopColor = "var(--ls-alink-color)"
+  }
+
+  function onDragLeave(e) {
+    e.stopPropagation()
+    e.preventDefault()
+    e.target.style.borderTopColor = ""
+  }
+
+  async function onDrop(e) {
+    e.stopPropagation()
+    e.preventDefault()
+    e.target.style.borderTopColor = ""
+    const srcUUID = e.dataTransfer.getData("text/plain")
+    const destUUID = e.target.dataset.uuid
+    if (srcUUID === destUUID) return
+    if (e.target.classList.contains("kef-tocgen-drag-childholder")) {
+      await logseq.Editor.moveBlock(srcUUID, destUUID, { children: true })
+    } else if (e.target.classList.contains("kef-tocgen-drag-bottomholder")) {
+      await logseq.Editor.moveBlock(srcUUID, destUUID)
+    } else {
+      await logseq.Editor.moveBlock(srcUUID, destUUID, { before: true })
+    }
+  }
+
+  function onDragEnd(e) {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const appContainer = parent.document.getElementById("app-container")
+    appContainer.classList.remove("kef-tocgen-dragging")
+
+    const shadowEl = parent.document.getElementById("kef-tocgen-drag-shadow")
+    shadowEl.remove()
+  }
+
   return (
-    <>
+    <div
+      class="kef-tocgen-block-container"
+      onMouseDown={(e) => {
+        // HACK: prevent dragdrop being prevented because of ancestor's
+        // `preventDefault()` call.
+        e.stopPropagation()
+      }}
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
       <div
         class={cls(
           "kef-tocgen-block",
           blocksToHighlight?.has(block.id) && "kef-tocgen-active-block",
         )}
+        data-uuid={block.embeddingUUID ?? block.uuid}
+        onDragEnter={onDragEnter}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
       >
         <button class="kef-tocgen-arrow" onClick={toggleCollapsed}>
           <Arrow
@@ -102,25 +173,44 @@ export default function Block({
           )}
         </div>
       </div>
+      <div
+        class="kef-tocgen-drag-childholder"
+        data-uuid={block.uuid}
+        onDragEnter={onDragEnter}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+      />
       {!block.collapsed && block.children.length > 0 && (
-        <div class="kef-tocgen-block-children">
-          <div
-            className="kef-tocgen-block-collapse"
-            onClick={toggleCollapseChildren}
-          />
-          {block.children.map((subBlock, i) => (
-            <Block
-              key={subBlock.id}
-              block={subBlock}
-              page={page}
-              blocksToHighlight={blocksToHighlight}
-              path={[...path, i]}
-              setData={setData}
+        <>
+          <div class="kef-tocgen-block-children">
+            <div
+              className="kef-tocgen-block-collapse"
+              onClick={toggleCollapseChildren}
             />
-          ))}
-        </div>
+            {block.children.map((subBlock, i) => (
+              <Block
+                key={subBlock.id}
+                block={subBlock}
+                page={page}
+                blocksToHighlight={blocksToHighlight}
+                path={[...path, i]}
+                setData={setData}
+              />
+            ))}
+            <div
+              class="kef-tocgen-drag-bottomholder"
+              data-uuid={
+                block.children[block.children.length - 1].embeddingUUID ??
+                block.children[block.children.length - 1].uuid
+              }
+              onDragEnter={onDragEnter}
+              onDragLeave={onDragLeave}
+              onDrop={onDrop}
+            />
+          </div>
+        </>
       )}
-    </>
+    </div>
   )
 }
 
