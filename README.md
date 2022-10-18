@@ -4,6 +4,16 @@
 
 Generate a TOC of any page/block anywhere and quickly access the page/block's content. Buttons that go to top and bottom are also provided. Notice that the TOC is generated based on block levels.
 
+## 功能展示 (Feature Highlights)
+
+- 自动与内容同步 (Sync with content automatically)
+- Shift 点击可在侧边栏打开 (Shift click to open in the sidebar)
+- 多种展开收起方式 (Multiple ways to expand and collapse)
+- 实时追踪编辑位置并在目录上高亮展示 (Realtime tracking and highlighting of the current editing position in TOC)
+- 嵌入块、嵌入页也能完美支持 (Embedded blocks and pages are supported)
+- 拖拽管理文档结构 (Drag and drop to organize the document structure)
+- 跟随主编辑页面变化的动态目录 (Dynamic TOC that follows the main page being edited)
+
 ## 使用展示 (Usage)
 
 场景一，动态目录 (Scenario 1, dynamic TOC)
