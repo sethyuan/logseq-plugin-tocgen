@@ -86,7 +86,9 @@ export default function TocGen({
             collapsings,
             slot,
           )
-          ret.embeddingUUID = src.uuid
+          if (ret != null) {
+            ret.embeddingUUID = src.uuid
+          }
           return ret
         }
       }
