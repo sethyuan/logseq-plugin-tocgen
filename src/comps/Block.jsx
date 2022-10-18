@@ -10,6 +10,7 @@ export default function Block({
   blocksToHighlight,
   path,
   setData,
+  refetchData,
 }) {
   const goTo = useCallback(
     (e) => {
@@ -111,10 +112,13 @@ export default function Block({
     if (srcUUID === destUUID) return
     if (e.target.classList.contains("kef-tocgen-drag-childholder")) {
       await logseq.Editor.moveBlock(srcUUID, destUUID, { children: true })
+      await refetchData()
     } else if (e.target.classList.contains("kef-tocgen-drag-bottomholder")) {
       await logseq.Editor.moveBlock(srcUUID, destUUID)
+      await refetchData()
     } else {
       await logseq.Editor.moveBlock(srcUUID, destUUID, { before: true })
+      await refetchData()
     }
   }
 
@@ -195,6 +199,7 @@ export default function Block({
                 blocksToHighlight={blocksToHighlight}
                 path={[...path, i]}
                 setData={setData}
+                refetchData={refetchData}
               />
             ))}
             <div

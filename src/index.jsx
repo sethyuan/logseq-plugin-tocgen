@@ -450,17 +450,11 @@ function removeRoots(slot) {
 }
 
 async function renderTOC(id, root, levels, headingType) {
-  const blocks =
-    root.page == null
-      ? await logseq.Editor.getPageBlocksTree(root.name)
-      : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
-          .children
   const blocksToHighlight = await findBlocksToHighlight(levels, headingType)
   render(
     <TocGen
       slot={id}
       root={root}
-      blocks={blocks}
       levels={levels}
       headingType={headingType}
       blocksToHighlight={blocksToHighlight}

@@ -16,7 +16,6 @@ import ExpandAllIcon from "./ExpandAllIcon.jsx"
 export default function TocGen({
   slot,
   root,
-  blocks,
   levels,
   headingType,
   blocksToHighlight,
@@ -121,33 +120,40 @@ export default function TocGen({
     [],
   )
 
+  const refetchData = useCallback(async () => {
+    removeRoots(slot)
+
+    const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
+    root.children =
+      root.page == null
+        ? await logseq.Editor.getPageBlocksTree(root.name)
+        : (await logseq.Editor.getBlock(root.id, { includeChildren: true }))
+            .children
+    const collapsings = {}
+    if (data != null) {
+      toCollapsingMap(collapsings, data)
+    }
+    setData(
+      await constructData(
+        root,
+        0,
+        levels,
+        expansionLevel,
+        headingType,
+        collapsings,
+        slot,
+      ),
+    )
+  }, [root, slot, data])
+
   useEffect(() => {
     ;(async () => {
       setPage(
         root.page == null ? root : await logseq.Editor.getPage(root.page.id),
       )
-
-      removeRoots(slot)
-
-      const expansionLevel = +(logseq.settings?.defaultExpansionLevel ?? 1)
-      root.children = blocks
-      const collapsings = {}
-      if (data != null) {
-        toCollapsingMap(collapsings, data)
-      }
-      setData(
-        await constructData(
-          root,
-          0,
-          levels,
-          expansionLevel,
-          headingType,
-          collapsings,
-          slot,
-        ),
-      )
+      await refetchData()
     })()
-  }, [root, blocks, slot])
+  }, [root, slot])
 
   const goTo = useCallback(
     (e) => {
@@ -279,6 +285,7 @@ export default function TocGen({
               blocksToHighlight={blocksToHighlight}
               path={[i]}
               setData={setData}
+              refetchData={refetchData}
             />
           ))}
         </div>
