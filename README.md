@@ -18,7 +18,7 @@ Generate a TOC of any page/block anywhere and quickly access the page/block's co
 
 场景一，动态目录 (Scenario 1, dynamic TOC)
 
-https://github.com/sethyuan/logseq-plugin-tocgen/raw/d77cbeffdb3000207efefc43184c0a5c75989216/demo.mp4
+https://user-images.githubusercontent.com/3410293/196385678-ba12ad05-6729-4909-b527-83f5d062fd07.mp4
 
 场景二，页面内目录 (Scenario 2, inline TOC)
 
