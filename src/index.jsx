@@ -221,7 +221,7 @@ async function main() {
     setTimeout(() => {
       const backtop = parent.document.querySelector(".kef-tocgen-backtop")
       const contentEl = parent.document.querySelector(
-        "div[data-is-global-graph-pages] > div:first-child",
+        ".cp__sidebar-main-content > div:first-child",
       )
       if (contentEl) {
         resizeObserver = new ResizeObserver(() => {
@@ -256,7 +256,7 @@ async function main() {
     setTimeout(() => {
       const godown = parent.document.querySelector(".kef-tocgen-godown")
       const contentEl = parent.document.querySelector(
-        "div[data-is-global-graph-pages] > div:first-child",
+        ".cp__sidebar-main-content > div:first-child",
       )
       if (contentEl) {
         resizeObserver = new ResizeObserver(() => {
@@ -454,7 +454,7 @@ async function renderTOC(id, root, levels, headingType) {
   render(
     <TocGen
       slot={id}
-      root={root}
+      root={{ ...root }}
       levels={levels}
       headingType={headingType}
       blocksToHighlight={blocksToHighlight}
@@ -524,6 +524,7 @@ async function observeAndRender(id, root, levels, headingType) {
           }
         }
       }
+
       if (block != null) {
         await renderIfPageBlock(block)
       }
@@ -596,7 +597,7 @@ async function findBlocksToHighlight(levels, headingType) {
 
   if (nodes.length <= 1) return null
 
-  let index = nodes.length <= levels ? nodes.length - 2 : levels - 1
+  let index = nodes.length - 1 <= levels ? nodes.length - 2 : levels
   while (
     headingType === HeadingTypes.h &&
     index >= 0 &&
