@@ -298,7 +298,7 @@ function isValid(block, content, headingType) {
   return (
     block.properties?.toc !== "no" &&
     content &&
-    !/^\s*{{/.test(content) &&
+    !/^\s*{{(?!embed )/.test(content) &&
     (headingType !== HeadingTypes.h || isHeading(block))
   )
 }
