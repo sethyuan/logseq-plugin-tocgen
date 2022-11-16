@@ -159,6 +159,7 @@ async function main() {
       display: none;
       opacity: 0;
       transition: opacity ${ICON_TRANSITION_DURATION}ms ease-in-out;
+      z-index: var(--ls-z-index-level-1);
     }
     .kef-tocgen-backtop:hover {
       opacity: 1 !important;
@@ -180,6 +181,7 @@ async function main() {
       display: none;
       opacity: 0;
       transition: opacity ${ICON_TRANSITION_DURATION}ms ease-in-out;
+      z-index: var(--ls-z-index-level-1);
     }
     .kef-tocgen-godown:hover {
       opacity: 1 !important;
