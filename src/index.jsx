@@ -555,6 +555,10 @@ function observeRoute(id, levels, headingType) {
         renderNoActivePage(id)
       } else {
         let root = await logseq.Editor.getCurrentPage()
+        if (root == null) {
+          renderNoActivePage(id)
+          return
+        }
         if (root.page != null) {
           root = await logseq.Editor.getPage(root.page.id)
         }
