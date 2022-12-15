@@ -322,6 +322,12 @@ async function main() {
       ),
     },
     {
+      key: "showTags",
+      type: "boolean",
+      default: false,
+      description: t("It defines whether or not to show tags in TOC."),
+    },
+    {
       key: "hideBackTop",
       type: "boolean",
       default: false,

@@ -21,8 +21,10 @@ export async function parseContent(content) {
     return parent.window.katex.renderToString(expr, { throwOnError: false })
   })
 
-  // Remove tags.
-  content = content.replace(/(?:^|\s)#\S+/g, "")
+  if (!logseq.settings?.showTags) {
+    // Remove tags.
+    content = content.replace(/(?:^|\s)#\S+/g, "")
+  }
 
   // Replace block refs with their content.
   let match
