@@ -13,7 +13,7 @@ Generate a TOC of any page/block anywhere and quickly access the page/block's co
 - 嵌入块、嵌入页也能完美支持 (Embedded blocks and pages are supported)
 - 可拖拽管理文档结构 (Drag and drop to organize the document structure)
 - 跟随主编辑页面变化的动态目录 (Dynamic TOC that follows the main page being edited)
-- 可为动态目录固定高度，在这种情况下目录会跟随页面内容滚动 (Fixed height dynamic TOC that scrolls along with the content)
+- 可为动态目录固定高度，在这种情况下目录会跟随页面内容滚动 (Fixed height dynamic TOC that scrolls in sync with the content)
 
 ## 使用展示 (Usage)
 
