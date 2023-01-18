@@ -21,6 +21,8 @@ Generate a TOC of any page/block anywhere and quickly access the page/block's co
 
 https://user-images.githubusercontent.com/3410293/196385678-ba12ad05-6729-4909-b527-83f5d062fd07.mp4
 
+https://user-images.githubusercontent.com/3410293/213190318-93d60b93-c257-411e-aa84-9b93e3fe129d.mp4
+
 场景二，页面内目录 (Scenario 2, inline TOC)
 
 ![demo](demo_inline_toc.gif)
