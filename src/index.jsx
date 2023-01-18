@@ -12,6 +12,7 @@ const ICON_TRANSITION_DURATION = 200
 const CURRENT = "*"
 
 const macroObservers = {}
+const intersectionObservers = {}
 const routeOffHooks = {}
 let resizeObserver = null
 // A map of all roots to observe to for a given slot.
@@ -198,7 +199,7 @@ async function main() {
   logseq.App.onMacroRendererSlotted(tocRenderer)
 
   logseq.Editor.registerSlashCommand("Table of Contents", async () => {
-    await logseq.Editor.insertAtEditingCursor("{{renderer :tocgen}}")
+    await logseq.Editor.insertAtEditingCursor("{{renderer :tocgen2}}")
     // NOTE: Leave this cursor moving code for future reference.
     // const input = parent.document.activeElement
     // const pos = input.selectionStart - 2
@@ -287,6 +288,9 @@ async function main() {
     for (const observer of Object.values(macroObservers)) {
       observer?.disconnect()
     }
+    for (const observer of Object.values(intersectionObservers)) {
+      observer?.disconnect()
+    }
 
     mainContentContainer.removeEventListener("scroll", backtopScrollHandler)
     mainContentContainer.removeEventListener("scroll", godownScrollHandler)
@@ -357,13 +361,13 @@ async function main() {
 }
 
 async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
-  const [type] = args
-  if (type.trim() !== ":tocgen") return
+  const type = args[0]?.trim()
+  if (type !== ":tocgen" && type !== ":tocgen2") return
 
   const renderered = parent.document.getElementById(slot)?.childElementCount > 0
   if (renderered) return
 
-  const nameArg = !args[1] || args[1] === "$1" ? "" : args[1].trim()
+  const nameArg = !args[1] ? "" : args[1].trim()
   const isBlock = nameArg?.startsWith("((")
   const name =
     nameArg === CURRENT
@@ -378,14 +382,21 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
             ).page.id,
           )
         ).name
-  const levels =
-    !args[2] || args[2] === "$2"
-      ? logseq.settings?.defaultLevels ?? 1
-      : Math.max(1, +args[2] || 1)
-  const headingType =
-    !args[3] || args[3] === "$3"
-      ? logseq.settings?.defaultHeadingType ?? "any"
-      : args[3].trim()
+  const trimmedHeight = args[2]?.trim()
+  const height =
+    type === ":tocgen"
+      ? null
+      : !trimmedHeight || trimmedHeight === "auto"
+      ? null
+      : trimmedHeight
+  const levelsIndex = type === ":tocgen" ? 2 : 3
+  const levels = !args[levelsIndex]
+    ? logseq.settings?.defaultLevels ?? 1
+    : Math.max(1, +args[levelsIndex] || 1)
+  const headingTypeIndex = type === ":tocgen" ? 3 : 4
+  const headingType = !args[headingTypeIndex]
+    ? logseq.settings?.defaultHeadingType ?? "any"
+    : args[headingTypeIndex].trim()
   const id = `kef-toc-${slot}`
 
   if (HeadingTypes[headingType] == null) {
@@ -399,6 +410,12 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     })
     return
   }
+
+  const slotEl = parent.document.getElementById(slot)
+  if (!slotEl) return
+  slotEl.style.width = "100%"
+  // HACK: leave some space to allow editing the block.
+  slotEl.style.marginTop = "2px"
 
   const root =
     name == null
@@ -422,20 +439,28 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   logseq.provideUI({
     key: `toc-${slot}`,
     slot,
-    template: `<div id="${id}"></div>`,
+    template: `<div id="${id}" style="width: 100%"></div>`,
     reset: true,
     style: {
       cursor: "default",
+      flex: "1",
     },
   })
 
   // Let div root element get generated first.
   setTimeout(async () => {
     if (root != null) {
-      await observeAndRender(id, root, levels, headingType)
+      await observeAndRender(
+        id,
+        root,
+        height,
+        levels,
+        headingType,
+        nameArg === CURRENT,
+      )
     }
     if (nameArg === CURRENT) {
-      observeRoute(id, levels, headingType)
+      observeRoute(id, height, levels, headingType)
       if (name == null) {
         renderNoActivePage(id)
       }
@@ -457,12 +482,13 @@ function removeRoots(slot) {
   embedRoots[slot] = undefined
 }
 
-async function renderTOC(id, root, levels, headingType) {
+async function renderTOC(id, root, height, levels, headingType) {
   const blocksToHighlight = await findBlocksToHighlight(levels, headingType)
   render(
     <TocGen
       slot={id}
       root={{ ...root }}
+      height={height}
       levels={levels}
       headingType={headingType}
       blocksToHighlight={blocksToHighlight}
@@ -478,7 +504,14 @@ function renderNoActivePage(id) {
   render(<div class="kef-tocgen-noactivepage" />, rootEl)
 }
 
-async function observeAndRender(id, root, levels, headingType) {
+async function observeAndRender(
+  id,
+  root,
+  height,
+  levels,
+  headingType,
+  isDynamic,
+) {
   const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
@@ -497,7 +530,7 @@ async function observeAndRender(id, root, levels, headingType) {
           (r.page == null && block.page?.id === r.id) ||
           (r.page != null && block.id === r.id)
         ) {
-          await renderTOC(id, root, levels, headingType)
+          await renderTOC(id, root, height, levels, headingType)
           return
         }
       }
@@ -516,6 +549,8 @@ async function observeAndRender(id, root, levels, headingType) {
       if (rootEl == null || !rootEl.isConnected) {
         observer.disconnect()
         macroObservers[id] = undefined
+        intersectionObservers[id]?.disconnect()
+        intersectionObservers[id] = undefined
         return
       }
 
@@ -536,6 +571,35 @@ async function observeAndRender(id, root, levels, headingType) {
       if (block != null) {
         await renderIfPageBlock(block)
       }
+
+      if (height != null && isDynamic && intersectionObservers[id] != null) {
+        for (const mutation of mutationList) {
+          for (const node of mutation.addedNodes) {
+            if (
+              (node.className === "flex flex-row" ||
+                node.className === "block-children-container flex") &&
+              node.querySelectorAll
+            ) {
+              const intersectionTargets = node.querySelectorAll(
+                ".block-content-inner",
+              )
+              for (const target of intersectionTargets) {
+                intersectionObservers[id].observe(target)
+              }
+            }
+          }
+          for (const node of mutation.removedNodes) {
+            if (node.querySelectorAll) {
+              const intersectionTargets = node.querySelectorAll(
+                ".block-content-inner",
+              )
+              for (const target of intersectionTargets) {
+                intersectionObservers[id].unobserve(target)
+              }
+            }
+          }
+        }
+      }
     })
     macroObservers[id] = observer
     observer.observe(parent.document.body, {
@@ -544,10 +608,35 @@ async function observeAndRender(id, root, levels, headingType) {
     })
   }
 
-  await renderTOC(id, root, levels, headingType)
+  if (height != null && isDynamic && intersectionObservers[id] == null) {
+    const root = parent.document.getElementById("main-content-container")
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const el = entry.target.closest("[blockid]")
+            const tocItemNode = parent.document.querySelector(
+              `#${id} [data-ref="${el.getAttribute("blockid")}"]`,
+            )
+            if (tocItemNode) {
+              tocItemNode.scrollIntoView({ block: "nearest" })
+            }
+          }
+        }
+      },
+      { root, rootMargin: "0px", threshold: 1 },
+    )
+    intersectionObservers[id] = observer
+    const targets = root.querySelectorAll(".block-content-inner")
+    for (const target of targets) {
+      observer.observe(target)
+    }
+  }
+
+  await renderTOC(id, root, height, levels, headingType)
 }
 
-function observeRoute(id, levels, headingType) {
+function observeRoute(id, height, levels, headingType) {
   if (routeOffHooks[id] == null) {
     routeOffHooks[id] = logseq.App.onRouteChanged(async ({ template }) => {
       const rootEl = parent.document.getElementById(id)
@@ -556,6 +645,11 @@ function observeRoute(id, levels, headingType) {
         routeOffHooks[id] = undefined
         return
       }
+
+      macroObservers[id]?.disconnect()
+      macroObservers[id] = undefined
+      intersectionObservers[id]?.disconnect()
+      intersectionObservers[id] = undefined
 
       if (template === "/") {
         renderNoActivePage(id)
@@ -568,9 +662,7 @@ function observeRoute(id, levels, headingType) {
         if (root.page != null) {
           root = await logseq.Editor.getPage(root.page.id)
         }
-        macroObservers[id]?.disconnect()
-        macroObservers[id] = undefined
-        await observeAndRender(id, root, levels, headingType)
+        await observeAndRender(id, root, height, levels, headingType, true)
       }
     })
   }

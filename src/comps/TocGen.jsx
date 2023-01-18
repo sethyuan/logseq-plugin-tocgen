@@ -16,6 +16,7 @@ import ExpandAllIcon from "./ExpandAllIcon.jsx"
 export default function TocGen({
   slot,
   root,
+  height,
   levels,
   headingType,
   blocksToHighlight,
@@ -232,7 +233,12 @@ export default function TocGen({
   if (data == null || page == null) return null
 
   return (
-    <div class="kef-tocgen-container">
+    <div
+      class="kef-tocgen-container"
+      style={
+        height == null ? undefined : { maxHeight: height, overflowY: "auto" }
+      }
+    >
       <div
         class={cls(
           "kef-tocgen-page",
