@@ -236,7 +236,13 @@ export default function TocGen({
     <div
       class="kef-tocgen-container"
       style={
-        height == null ? undefined : { maxHeight: height, overflowY: "auto" }
+        height == null
+          ? undefined
+          : {
+              maxHeight: height,
+              overflowY: "auto",
+              overscrollBehavior: "contain",
+            }
       }
     >
       <div
