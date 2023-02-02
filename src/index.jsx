@@ -364,7 +364,9 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   const type = args[0]?.trim()
   if (type !== ":tocgen" && type !== ":tocgen2") return
 
-  const renderered = parent.document.getElementById(slot)?.childElementCount > 0
+  const slotEl = parent.document.getElementById(slot)
+  if (!slotEl) return
+  const renderered = slotEl.childElementCount > 0
   if (renderered) return
 
   const nameArg = !args[1] ? "" : args[1].trim()
@@ -411,8 +413,6 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
     return
   }
 
-  const slotEl = parent.document.getElementById(slot)
-  if (!slotEl) return
   slotEl.style.width = "100%"
   // HACK: leave some space to allow editing the block.
   slotEl.style.marginTop = "2px"
