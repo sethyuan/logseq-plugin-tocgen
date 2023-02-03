@@ -18,6 +18,10 @@
 
 ## 使用展示
 
+场景零，右键菜单
+
+https://user-images.githubusercontent.com/3410293/216609543-9edcf0de-6a87-441a-a599-0b50511bb713.mp4
+
 场景一，动态目录
 
 https://user-images.githubusercontent.com/3410293/196385678-ba12ad05-6729-4909-b527-83f5d062fd07.mp4
