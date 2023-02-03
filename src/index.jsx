@@ -302,7 +302,7 @@ async function main() {
     {
       key: "defaultLevels",
       type: "number",
-      default: 1,
+      default: 6,
       description: t(
         "It defines how many levels a TOC contains by default if not specified when the TOC is created.",
       ),
@@ -320,7 +320,7 @@ async function main() {
       type: "enum",
       enumChoices: ["any", "h"],
       enumPicker: "select",
-      default: "any",
+      default: "h",
       description: t(
         'It defines what kind of blocks can be recognized as a heading. "any" means that any block will do；"h" means that only H1-Hn blocks are accepted as headings.',
       ),

@@ -1,6 +1,6 @@
 # logseq-plugin-tocgen
 
-Generate a TOC of any page/block anywhere and quickly access the page/block's content. Buttons that go to top and bottom are also provided. Notice that the TOC is generated based on block levels.
+Generate a TOC of any page/block and quickly access the page/block's content. Buttons that go to top and bottom are also provided. Notice that the TOC is generated based on block levels.
 
 ## Feature Highlights
 
@@ -9,7 +9,7 @@ Generate a TOC of any page/block anywhere and quickly access the page/block's co
 - Multiple ways to expand and collapse
 - Realtime tracking and highlighting of the current editing position in TOC
 - Embedded blocks and pages are supported
-- Drag and drop to organize the document structure
+- Drag and drop in TOC to organize the document structure
 - Dynamic TOC that follows the main page being edited
 - Fixed height dynamic TOC that scrolls in sync with the content
 
@@ -37,13 +37,10 @@ If you want to generate a TOC that dynamically changes according to what page yo
 
 ```
 {{renderer :tocgen2, *}}
-{{renderer :tocgen2, *, auto, 2}}
-{{renderer :tocgen2, *, auto, 2, h}}
 
-Specify a height for the TOC and its content will scroll in sync with the page content. CSS height units are accepted.
+Specify a height for the TOC and its content will scroll in sync with the page content. CSS height units are accepted. `auto` means height is dependant on content.
+{{renderer :tocgen2, *, auto}}
 {{renderer :tocgen2, *, 300px}}
-{{renderer :tocgen2, *, 300px, 2}}
-{{renderer :tocgen2, *, 300px, 2, h}}
 ```
 
 ```
@@ -63,11 +60,11 @@ You can specify how many levels to generate.
 {{renderer :tocgen2, [[pagename]], auto, 2}}
 {{renderer :tocgen2, ((block-reference)), auto, 2}}
 
-If you want to include only H1-Hn headings, that is, `#` to `######` in markdown,
+If you want to include only H1-Hn headings (h), that is, `#` to `######` in markdown,
+or if you want any content be treated like a heading (any),
 you need to use a third argument.
-{{renderer :tocgen2, [[]], auto, 1, h}}
 {{renderer :tocgen2, [[page name]], auto, 1, h}}
-{{renderer :tocgen2, ((block-reference)), auto, 1, h}}
+{{renderer :tocgen2, [[page name]], auto, 1, any}}
 ```
 
 If there is a block that you don't want it to appear in TOC, you can give it a `toc:: no` block property.
