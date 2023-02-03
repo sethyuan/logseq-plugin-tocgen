@@ -16,6 +16,7 @@ const BACK_TOP_ICON = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" vi
 const GO_DOWN_ICON = `<svg t="1651059361900" class="kef-tocgen-icon-godown" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12219" width="200" height="200"><path d="M830.24 340.688l11.328 11.312a16 16 0 0 1 0 22.624L530.448 685.76a16 16 0 0 1-22.64 0L196.688 374.624a16 16 0 0 1 0-22.624l11.312-11.312a16 16 0 0 1 22.624 0l288.496 288.496 288.512-288.496a16 16 0 0 1 22.624 0z" p-id="12220"></path></svg>`
 const ICON_TRANSITION_DURATION = 200
 const CURRENT = "*"
+const SIDEBAR_CONTENTS_SELECTOR = ".sidebar-item #contents"
 
 const macroObservers = {}
 const intersectionObservers = {}
@@ -220,23 +221,23 @@ async function main() {
 
   logseq.App.registerPageMenuItem(t("Open TOC"), async ({ page: pageName }) => {
     // Open contents in sidebar if not already opened.
-    let contentsEl = parent.document.querySelector(".sidebar-item #contents")
+    let contentsEl = parent.document.querySelector(SIDEBAR_CONTENTS_SELECTOR)
     if (contentsEl == null) {
       const contentsPage = await logseq.Editor.getPage("contents")
       logseq.Editor.openInRightSidebar(contentsPage.uuid)
       // HACK: wait until content is loaded.
-      contentsEl = await waitForEl(".sidebar-item #contents", 5000)
+      contentsEl = await waitForEl(SIDEBAR_CONTENTS_SELECTOR, 5000)
       if (contentsEl) {
-        await waitMs(50)
+        await waitMs(100)
       }
     }
     await logseq.Editor.appendBlockInPage(
       "contents",
-      contentsEl != null
+      contentsEl?.clientHeight + 100 < parent.window.innerHeight
         ? `{{renderer :tocgen2, [[${pageName}]], calc(100vh - ${
             contentsEl.clientHeight + 100
           }px)}}`
-        : "{{renderer :tocgen2, [[${pageName}]]}}",
+        : `{{renderer :tocgen2, [[${pageName}]]}}`,
     )
     // HACK: exitEditingMode does not work if called immediately after appending.
     await waitMs(50)
@@ -485,25 +486,17 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   // Let div root element get generated first.
   setTimeout(async () => {
     if (root != null) {
-      await observeAndRender(
+      await observeAndRender(id, root, height, levels, headingType, uuid)
+    }
+    if (nameArg === CURRENT) {
+      observeRoute(
         id,
-        root,
         height,
         levels,
         headingType,
-        nameArg === CURRENT,
         uuid,
+        nameArg === CURRENT ? null : name,
       )
-    }
-    observeRoute(
-      id,
-      height,
-      levels,
-      headingType,
-      uuid,
-      nameArg === CURRENT ? null : name,
-    )
-    if (nameArg === CURRENT) {
       if (name == null) {
         renderNoActivePage(id)
       }
@@ -615,11 +608,7 @@ async function observeAndRender(id, root, height, levels, headingType, uuid) {
       if (height != null && intersectionObservers[id] != null) {
         for (const mutation of mutationList) {
           for (const node of mutation.addedNodes) {
-            if (
-              (node.className === "flex flex-row" ||
-                node.className === "block-children-container flex") &&
-              node.querySelectorAll
-            ) {
+            if (node.querySelectorAll) {
               const intersectionTargets = node.querySelectorAll(
                 ".block-content-inner",
               )
@@ -691,15 +680,7 @@ function observeRoute(id, height, levels, headingType, uuid, name) {
       intersectionObservers[id]?.disconnect()
       intersectionObservers[id] = undefined
 
-      if (name != null) {
-        let root = await logseq.Editor.getCurrentPage()
-        if (root?.page != null) {
-          root = await logseq.Editor.getPage(root.page.id)
-        }
-        if (root?.name === name) {
-          await observeAndRender(id, root, height, levels, headingType, uuid)
-        }
-      } else if (template === "/") {
+      if (template === "/") {
         renderNoActivePage(id)
       } else {
         let root = await logseq.Editor.getCurrentPage()

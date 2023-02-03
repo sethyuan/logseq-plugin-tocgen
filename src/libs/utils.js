@@ -18,6 +18,7 @@ export async function parseContent(content) {
 
   // Handle LaTex
   content = content.replaceAll(/(\${1,2})([^\$]+)\1/g, (str, _, expr) => {
+    if (parent.window.katex == null) return expr
     return parent.window.katex.renderToString(expr, { throwOnError: false })
   })
 
