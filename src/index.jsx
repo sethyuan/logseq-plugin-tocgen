@@ -431,11 +431,11 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
       : trimmedHeight
   const levelsIndex = type === ":tocgen" ? 2 : 3
   const levels = !args[levelsIndex]
-    ? logseq.settings?.defaultLevels ?? 1
+    ? logseq.settings?.defaultLevels ?? 6
     : Math.max(1, +args[levelsIndex] || 1)
   const headingTypeIndex = type === ":tocgen" ? 3 : 4
   const headingType = !args[headingTypeIndex]
-    ? logseq.settings?.defaultHeadingType ?? "any"
+    ? logseq.settings?.defaultHeadingType ?? "h"
     : args[headingTypeIndex].trim()
   const id = `kef-toc-${slot}`
 
