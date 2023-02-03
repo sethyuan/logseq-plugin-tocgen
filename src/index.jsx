@@ -1,9 +1,15 @@
 import "@logseq/libs"
+import { waitMs } from "jsutils"
 import { setup, t } from "logseq-l10n"
 import { render } from "preact"
 import { debounce } from "rambdax"
 import TocGen from "./comps/TocGen.jsx"
-import { EMBED_REGEX, HeadingTypes, isHeading } from "./libs/utils.js"
+import {
+  EMBED_REGEX,
+  HeadingTypes,
+  isHeading,
+  waitForEl,
+} from "./libs/utils.js"
 import zhCN from "./translations/zh-CN.json"
 
 const BACK_TOP_ICON = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4076" width="200" height="200"><path d="M526.848 202.24c-4.096-4.096-9.216-6.144-14.848-6.144s-11.264 2.048-14.848 6.144L342.016 356.864c-8.192 8.192-8.192 21.504 0 30.208 8.192 8.192 21.504 8.192 30.208 0L512 247.296l139.776 139.776c4.096 4.096 9.728 6.144 14.848 6.144 5.632 0 10.752-2.048 14.848-6.144 8.192-8.192 8.192-21.504 0-30.208L526.848 202.24zM116.224 595.968h90.624v231.936h42.496V595.968h90.624v-42.496H115.712v42.496z m458.24-42.496h-112.64c-13.824 0-27.136 5.12-37.376 15.36s-15.36 24.064-15.36 37.376v168.448c0 13.824 5.12 27.136 15.36 37.376s24.064 15.36 37.376 15.36h112.64c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376V606.208c0-13.824-5.12-27.136-15.36-37.376s-23.552-15.36-37.376-15.36z m10.752 221.696c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072h-112.64c-2.048 0-5.12-0.512-7.68-3.072s-3.072-5.632-3.072-7.68V606.72c0-2.048 0.512-5.12 3.072-7.68s5.632-3.072 7.68-3.072h112.64c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v168.448z m307.2-205.824c-10.24-10.24-24.064-15.36-37.376-15.36H709.632v274.432h42.496v-120.32H855.04c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376v-48.128c0-14.336-5.12-27.648-15.36-37.888z m-27.136 84.992c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072H751.104v-69.12H855.04c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v47.616h-0.512z" p-id="4077"></path></svg>`
@@ -137,6 +143,12 @@ async function main() {
       height: 1em;
       transform: translateY(-1px);
     }
+    .kef-tocgen-icon-edit {
+      width: 0.9em;
+      height: 0.9em;
+      transform: translateY(-1px);
+      margin-left: 2px;
+    }
     .kef-tocgen-drag-childholder {
       pointer-events: auto !important;
       height: 0;
@@ -204,6 +216,31 @@ async function main() {
     // const input = parent.document.activeElement
     // const pos = input.selectionStart - 2
     // input.setSelectionRange(pos, pos)
+  })
+
+  logseq.App.registerPageMenuItem(t("Open TOC"), async ({ page: pageName }) => {
+    // Open contents in sidebar if not already opened.
+    let contentsEl = parent.document.querySelector(".sidebar-item #contents")
+    if (contentsEl == null) {
+      const contentsPage = await logseq.Editor.getPage("contents")
+      logseq.Editor.openInRightSidebar(contentsPage.uuid)
+      // HACK: wait until content is loaded.
+      contentsEl = await waitForEl(".sidebar-item #contents", 5000)
+      if (contentsEl) {
+        await waitMs(50)
+      }
+    }
+    await logseq.Editor.appendBlockInPage(
+      "contents",
+      contentsEl != null
+        ? `{{renderer :tocgen2, [[${pageName}]], calc(100vh - ${
+            contentsEl.clientHeight + 100
+          }px)}}`
+        : "{{renderer :tocgen2, [[${pageName}]]}}",
+    )
+    // HACK: exitEditingMode does not work if called immediately after appending.
+    await waitMs(50)
+    await logseq.Editor.exitEditingMode()
   })
 
   const mainContainer = parent.document.getElementById("main-container")
@@ -414,8 +451,6 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
   }
 
   slotEl.style.width = "100%"
-  // HACK: leave some space to allow editing the block.
-  slotEl.style.marginTop = "2px"
 
   const root =
     name == null
@@ -457,10 +492,18 @@ async function tocRenderer({ slot, payload: { arguments: args, uuid } }) {
         levels,
         headingType,
         nameArg === CURRENT,
+        uuid,
       )
     }
+    observeRoute(
+      id,
+      height,
+      levels,
+      headingType,
+      uuid,
+      nameArg === CURRENT ? null : name,
+    )
     if (nameArg === CURRENT) {
-      observeRoute(id, height, levels, headingType)
       if (name == null) {
         renderNoActivePage(id)
       }
@@ -482,11 +525,15 @@ function removeRoots(slot) {
   embedRoots[slot] = undefined
 }
 
-async function renderTOC(id, root, height, levels, headingType) {
+async function renderTOC(id, root, height, levels, headingType, uuid) {
+  const el = parent.document.getElementById(id)
+  if (el == null) return
+
   const blocksToHighlight = await findBlocksToHighlight(levels, headingType)
   render(
     <TocGen
       slot={id}
+      uuid={uuid}
       root={{ ...root }}
       height={height}
       levels={levels}
@@ -495,7 +542,7 @@ async function renderTOC(id, root, height, levels, headingType) {
       pushRoot={pushRoot}
       removeRoots={removeRoots}
     />,
-    parent.document.getElementById(id),
+    el,
   )
 }
 
@@ -504,14 +551,7 @@ function renderNoActivePage(id) {
   render(<div class="kef-tocgen-noactivepage" />, rootEl)
 }
 
-async function observeAndRender(
-  id,
-  root,
-  height,
-  levels,
-  headingType,
-  isDynamic,
-) {
+async function observeAndRender(id, root, height, levels, headingType, uuid) {
   const rootEl = parent.document.getElementById(id)
 
   async function renderIfPageBlock(node) {
@@ -530,7 +570,7 @@ async function observeAndRender(
           (r.page == null && block.page?.id === r.id) ||
           (r.page != null && block.id === r.id)
         ) {
-          await renderTOC(id, root, height, levels, headingType)
+          await renderTOC(id, root, height, levels, headingType, uuid)
           return
         }
       }
@@ -572,7 +612,7 @@ async function observeAndRender(
         await renderIfPageBlock(block)
       }
 
-      if (height != null && isDynamic && intersectionObservers[id] != null) {
+      if (height != null && intersectionObservers[id] != null) {
         for (const mutation of mutationList) {
           for (const node of mutation.addedNodes) {
             if (
@@ -608,7 +648,7 @@ async function observeAndRender(
     })
   }
 
-  if (height != null && isDynamic && intersectionObservers[id] == null) {
+  if (height != null && intersectionObservers[id] == null) {
     const root = parent.document.getElementById("main-content-container")
     const observer = new IntersectionObserver(
       (entries) => {
@@ -633,10 +673,10 @@ async function observeAndRender(
     }
   }
 
-  await renderTOC(id, root, height, levels, headingType)
+  await renderTOC(id, root, height, levels, headingType, uuid)
 }
 
-function observeRoute(id, height, levels, headingType) {
+function observeRoute(id, height, levels, headingType, uuid, name) {
   if (routeOffHooks[id] == null) {
     routeOffHooks[id] = logseq.App.onRouteChanged(async ({ template }) => {
       const rootEl = parent.document.getElementById(id)
@@ -651,7 +691,15 @@ function observeRoute(id, height, levels, headingType) {
       intersectionObservers[id]?.disconnect()
       intersectionObservers[id] = undefined
 
-      if (template === "/") {
+      if (name != null) {
+        let root = await logseq.Editor.getCurrentPage()
+        if (root?.page != null) {
+          root = await logseq.Editor.getPage(root.page.id)
+        }
+        if (root?.name === name) {
+          await observeAndRender(id, root, height, levels, headingType, uuid)
+        }
+      } else if (template === "/") {
         renderNoActivePage(id)
       } else {
         let root = await logseq.Editor.getCurrentPage()
@@ -662,7 +710,7 @@ function observeRoute(id, height, levels, headingType) {
         if (root.page != null) {
           root = await logseq.Editor.getPage(root.page.id)
         }
-        await observeAndRender(id, root, height, levels, headingType, true)
+        await observeAndRender(id, root, height, levels, headingType, uuid)
       }
     })
   }

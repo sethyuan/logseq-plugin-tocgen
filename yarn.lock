@@ -339,6 +339,11 @@ jsonc-parser@^3.0.0:
   resolved "https://registry.npmmirror.com/jsonc-parser/-/jsonc-parser-3.0.0.tgz#abdd785701c7e7eaca8a9ec8cf070ca51a745a22"
   integrity sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==
 
+jsutils@^1.12.0:
+  version "1.12.0"
+  resolved "https://registry.npmmirror.com/jsutils/-/jsutils-1.12.0.tgz#6feec193a500919937c82ebe75752e042b407be0"
+  integrity sha512-pLxwlgmGBKqqCU/lhas2xdv/x4BrCJhQskl2tM3ICHQAQioBRnSGck0EJOYpWeQrAH5dXZVEqcuZpSW6jQzrrA==
+
 lodash-es@4.17.21:
   version "4.17.21"
   resolved "https://registry.npmmirror.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"

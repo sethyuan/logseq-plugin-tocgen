@@ -13,5 +13,8 @@
   "Page/Block not found!": "页面/块不存在！",
   "page": "页面",
   "Expand All": "展开全部",
-  "Collapse All": "收起全部"
+  "Collapse All": "收起全部",
+  "Edit": "编辑",
+  "Delete": "删除",
+  "Open TOC": "打开 TOC"
 }

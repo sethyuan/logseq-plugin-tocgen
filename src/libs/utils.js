@@ -76,3 +76,20 @@ export function isHeading(block) {
     block.page == null
   )
 }
+
+export function waitForEl(selector, timeout) {
+  const start = Date.now()
+
+  function tryFindEl(resolve) {
+    const el = parent.document.querySelector(selector)
+    if (el != null) {
+      resolve(el)
+    } else if (Date.now() - start <= timeout) {
+      setTimeout(() => tryFindEl(resolve), 100)
+    } else {
+      resolve(null)
+    }
+  }
+
+  return new Promise(tryFindEl)
+}

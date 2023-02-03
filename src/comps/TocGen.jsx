@@ -11,10 +11,13 @@ import {
 import Arrow from "./Arrow.jsx"
 import Block from "./Block.jsx"
 import CollapseAllIcon from "./CollapseAllIcon.jsx"
+import DeleteIcon from "./DeleteIcon.jsx"
+import EditIcon from "./EditIcon.jsx"
 import ExpandAllIcon from "./ExpandAllIcon.jsx"
 
 export default function TocGen({
   slot,
+  uuid,
   root,
   height,
   levels,
@@ -230,6 +233,9 @@ export default function TocGen({
     )
   }, [])
 
+  const editBlock = useCallback(() => logseq.Editor.editBlock(uuid), [uuid])
+  const deleteBlock = useCallback(() => logseq.Editor.removeBlock(uuid), [uuid])
+
   if (data == null || page == null) return null
 
   return (
@@ -281,6 +287,12 @@ export default function TocGen({
               {t("page")}
             </button>
           )}
+          <button title={t("Edit")} onClick={editBlock}>
+            <EditIcon />
+          </button>
+          <button title={t("Delete")} onClick={deleteBlock}>
+            <DeleteIcon />
+          </button>
         </div>
       </div>
       {!data.collapsed && data.children.length > 0 && (

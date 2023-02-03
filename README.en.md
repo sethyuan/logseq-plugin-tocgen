@@ -11,7 +11,8 @@ Generate a TOC of any page/block and quickly access the page/block's content. Bu
 - Embedded blocks and pages are supported
 - Drag and drop in TOC to organize the document structure
 - Dynamic TOC that follows the main page being edited
-- Fixed height dynamic TOC that scrolls in sync with the content
+- Fixed height TOC that scrolls in sync with the content
+- Quickly open an TOC to the right sidebar through page's context menu
 
 ## Usage
 
