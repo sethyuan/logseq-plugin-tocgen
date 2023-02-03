@@ -62,7 +62,9 @@ https://user-images.githubusercontent.com/3410293/213190318-93d60b93-c257-411e-a
 {{renderer :tocgen2, [[pagename]], auto, 2}}
 {{renderer :tocgen2, ((block-reference)), auto, 2}}
 
-如果你想在TOC中只包含H1-Hn（h）这种heading，即markdown的`#`至`######`，或者指定任何内容都可以作为heading使用（any），那么你可以再通过一个参数来详细指定。
+如果你想在TOC中只包含H1-Hn（h）这种heading，即markdown的`#`至`######`，
+或者指定任何内容都可以作为heading使用（any），
+那么你可以再通过一个参数来详细指定。
 {{renderer :tocgen2, [[page name]], auto, 1, h}}
 {{renderer :tocgen2, [[page name]], auto, 1, any}}
 ```
