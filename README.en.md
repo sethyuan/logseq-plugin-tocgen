@@ -1,3 +1,5 @@
+[中文](README.md) | English
+
 # logseq-plugin-tocgen
 
 Generate a TOC of any page/block and quickly access the page/block's content. Buttons that go to top and bottom are also provided. Notice that the TOC is generated based on block levels.

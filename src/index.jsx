@@ -12,6 +12,7 @@ import {
 } from "./libs/utils.js"
 import zhCN from "./translations/zh-CN.json"
 
+const TB_ICON = `<svg t="1675661268312" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1525" width="200" height="200"><path d="M128 384l597.333333 0 0-85.333333-597.333333 0 0 85.333333zM128 554.666667l597.333333 0 0-85.333333-597.333333 0 0 85.333333zM128 725.333333l597.333333 0 0-85.333333-597.333333 0 0 85.333333zM810.666667 725.333333l85.333333 0 0-85.333333-85.333333 0 0 85.333333zM810.666667 298.666667l0 85.333333 85.333333 0 0-85.333333-85.333333 0zM810.666667 554.666667l85.333333 0 0-85.333333-85.333333 0 0 85.333333z" p-id="1526"></path></svg>`
 const BACK_TOP_ICON = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4076" width="200" height="200"><path d="M526.848 202.24c-4.096-4.096-9.216-6.144-14.848-6.144s-11.264 2.048-14.848 6.144L342.016 356.864c-8.192 8.192-8.192 21.504 0 30.208 8.192 8.192 21.504 8.192 30.208 0L512 247.296l139.776 139.776c4.096 4.096 9.728 6.144 14.848 6.144 5.632 0 10.752-2.048 14.848-6.144 8.192-8.192 8.192-21.504 0-30.208L526.848 202.24zM116.224 595.968h90.624v231.936h42.496V595.968h90.624v-42.496H115.712v42.496z m458.24-42.496h-112.64c-13.824 0-27.136 5.12-37.376 15.36s-15.36 24.064-15.36 37.376v168.448c0 13.824 5.12 27.136 15.36 37.376s24.064 15.36 37.376 15.36h112.64c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376V606.208c0-13.824-5.12-27.136-15.36-37.376s-23.552-15.36-37.376-15.36z m10.752 221.696c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072h-112.64c-2.048 0-5.12-0.512-7.68-3.072s-3.072-5.632-3.072-7.68V606.72c0-2.048 0.512-5.12 3.072-7.68s5.632-3.072 7.68-3.072h112.64c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v168.448z m307.2-205.824c-10.24-10.24-24.064-15.36-37.376-15.36H709.632v274.432h42.496v-120.32H855.04c13.824 0 27.136-5.12 37.376-15.36s15.36-24.064 15.36-37.376v-48.128c0-14.336-5.12-27.648-15.36-37.888z m-27.136 84.992c0 2.048-0.512 5.12-3.072 7.68s-5.632 3.072-7.68 3.072H751.104v-69.12H855.04c2.048 0 5.12 0.512 7.68 3.072s3.072 5.632 3.072 7.68v47.616h-0.512z" p-id="4077"></path></svg>`
 const GO_DOWN_ICON = `<svg t="1651059361900" class="kef-tocgen-icon-godown" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12219" width="200" height="200"><path d="M830.24 340.688l11.328 11.312a16 16 0 0 1 0 22.624L530.448 685.76a16 16 0 0 1-22.64 0L196.688 374.624a16 16 0 0 1 0-22.624l11.312-11.312a16 16 0 0 1 22.624 0l288.496 288.496 288.512-288.496a16 16 0 0 1 22.624 0z" p-id="12220"></path></svg>`
 const ICON_TRANSITION_DURATION = 200
@@ -207,6 +208,24 @@ async function main() {
       fill: var(--ls-primary-text-color);
       padding: 4px;
     }
+
+    .kef-tocgen-tb-icon {
+      display: flex;
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      justify-content: center;
+      align-items: center;
+      color: var(--ls-header-button-background);
+    }
+    .kef-tocgen-tb-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+    .kef-tocgen-tb-icon:hover {
+      background: var(--ls-tertiary-background-color);
+    }
   `)
 
   logseq.App.onMacroRendererSlotted(tocRenderer)
@@ -219,29 +238,14 @@ async function main() {
     // input.setSelectionRange(pos, pos)
   })
 
-  logseq.App.registerPageMenuItem(t("Open TOC"), async ({ page: pageName }) => {
-    // Open contents in sidebar if not already opened.
-    let contentsEl = parent.document.querySelector(SIDEBAR_CONTENTS_SELECTOR)
-    if (contentsEl == null) {
-      const contentsPage = await logseq.Editor.getPage("contents")
-      logseq.Editor.openInRightSidebar(contentsPage.uuid)
-      // HACK: wait until content is loaded.
-      contentsEl = await waitForEl(SIDEBAR_CONTENTS_SELECTOR, 5000)
-      if (contentsEl) {
-        await waitMs(100)
-      }
-    }
-    await logseq.Editor.appendBlockInPage(
-      "contents",
-      contentsEl?.clientHeight + 100 < parent.window.innerHeight
-        ? `{{renderer :tocgen2, [[${pageName}]], calc(100vh - ${
-            contentsEl.clientHeight + 100
-          }px)}}`
-        : `{{renderer :tocgen2, [[${pageName}]]}}`,
-    )
-    // HACK: exitEditingMode does not work if called immediately after appending.
-    await waitMs(50)
-    await logseq.Editor.exitEditingMode()
+  logseq.App.registerPageMenuItem(t("Open TOC"), async ({ page }) =>
+    openPageTOC(page),
+  )
+  logseq.App.registerUIItem("toolbar", {
+    key: t("open-toc"),
+    template: `<a class="kef-tocgen-tb-icon" data-on-click="openTOC" title="${t(
+      "Open TOC",
+    )}">${TB_ICON}</a>`,
   })
 
   const mainContainer = parent.document.getElementById("main-container")
@@ -758,6 +762,31 @@ async function getCurrentPageName() {
   return page?.name
 }
 
+async function openPageTOC(pageName) {
+  // Open contents in sidebar if not already opened.
+  let contentsEl = parent.document.querySelector(SIDEBAR_CONTENTS_SELECTOR)
+  if (contentsEl == null) {
+    const contentsPage = await logseq.Editor.getPage("contents")
+    logseq.Editor.openInRightSidebar(contentsPage.uuid)
+    // HACK: wait until content is loaded.
+    contentsEl = await waitForEl(SIDEBAR_CONTENTS_SELECTOR, 5000)
+    if (contentsEl) {
+      await waitMs(100)
+    }
+  }
+  await logseq.Editor.appendBlockInPage(
+    "contents",
+    contentsEl?.clientHeight + 100 < parent.window.innerHeight
+      ? `{{renderer :tocgen2, [[${pageName}]], calc(100vh - ${
+          contentsEl.clientHeight + 100
+        }px)}}`
+      : `{{renderer :tocgen2, [[${pageName}]]}}`,
+  )
+  // HACK: exitEditingMode does not work if called immediately after appending.
+  await waitMs(50)
+  await logseq.Editor.exitEditingMode()
+}
+
 const model = {
   backtop() {
     const mainContainer = parent.document.getElementById("main-container")
@@ -772,6 +801,14 @@ const model = {
       "main-content-container",
     )
     mainContentContainer.scroll({ top: mainContentContainer.scrollHeight })
+  },
+  async openTOC() {
+    const pageName = await getCurrentPageName()
+    if (pageName) {
+      openPageTOC(pageName)
+    } else {
+      logseq.UI.showMsg(t("No page detected.", "warn"))
+    }
   },
 }
 
