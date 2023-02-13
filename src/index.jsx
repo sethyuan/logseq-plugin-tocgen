@@ -684,9 +684,7 @@ function observeRoute(id, height, levels, headingType, uuid, name) {
       intersectionObservers[id]?.disconnect()
       intersectionObservers[id] = undefined
 
-      if (template === "/") {
-        renderNoActivePage(id)
-      } else {
+      if (template === "/page/:name") {
         let root = await logseq.Editor.getCurrentPage()
         if (root == null) {
           renderNoActivePage(id)
@@ -696,6 +694,8 @@ function observeRoute(id, height, levels, headingType, uuid, name) {
           root = await logseq.Editor.getPage(root.page.id)
         }
         await observeAndRender(id, root, height, levels, headingType, uuid)
+      } else {
+        renderNoActivePage(id)
       }
     })
   }
