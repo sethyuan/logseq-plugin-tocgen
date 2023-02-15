@@ -1,6 +1,6 @@
 {
   "name": "logseq-plugin-tocgen",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "main": "dist/index.html",
   "logseq": {
     "id": "_sethyuan-logseq-tocgen",
@@ -11,7 +11,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@logseq/libs": "^0.0.9",
+    "@logseq/libs": "^0.0.14",
     "immer": "^9.0.15",
     "jsutils": "^1.12.0",
     "logseq-l10n": "^0.2.0",
