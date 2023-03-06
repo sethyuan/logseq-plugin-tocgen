@@ -771,7 +771,7 @@ async function openPageTOC(pageName) {
     // HACK: wait until content is loaded.
     contentsEl = await waitForEl(SIDEBAR_CONTENTS_SELECTOR, 5000)
     if (contentsEl) {
-      await waitMs(100)
+      await waitMs(300)
     }
   }
   await logseq.Editor.appendBlockInPage(

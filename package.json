@@ -1,6 +1,6 @@
 {
   "name": "logseq-plugin-tocgen",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "main": "dist/index.html",
   "logseq": {
     "id": "_sethyuan-logseq-tocgen",
