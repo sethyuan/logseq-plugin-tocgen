@@ -49,6 +49,20 @@ export async function parseContent(content) {
   // Remove page refs
   content = content.replace(/\[\[([^\]]+)\]\]/g, "$1")
 
+  // Marker conversion
+  content = content.replace(
+    /^(TODO|LATER) /,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="display: inline; margin-right: 0.25em" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"> <path stroke="none" d="M0 0h24v24H0z" fill="none"></path> <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path> </svg>`,
+  )
+  content = content.replace(
+    /^(DOING|NOW) /,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="display: inline; margin-right: 0.25em" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"> <path stroke="none" d="M0 0h24v24H0z" fill="none"></path> <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path> <path d="M9 12l2 2l4 -4"></path> </svg>`,
+  )
+  content = content.replace(
+    /^DONE (.+)$/,
+    `<span class="kef-tocgen-done"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="display: inline; margin-right: 0.25em" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"> <path stroke="none" d="M0 0h24v24H0z" fill="none"></path> <path d="M18.333 2c1.96 0 3.56 1.537 3.662 3.472l.005 .195v12.666c0 1.96 -1.537 3.56 -3.472 3.662l-.195 .005h-12.666a3.667 3.667 0 0 1 -3.662 -3.472l-.005 -.195v-12.666c0 -1.96 1.537 -3.56 3.472 -3.662l.195 -.005h12.666zm-2.626 7.293a1 1 0 0 0 -1.414 0l-3.293 3.292l-1.293 -1.292l-.094 -.083a1 1 0 0 0 -1.32 1.497l2 2l.094 .083a1 1 0 0 0 1.32 -.083l4 -4l.083 -.094a1 1 0 0 0 -.083 -1.32z" stroke-width="0" fill="currentColor"></path> </svg>$1</span>`,
+  )
+
   return content.trim()
 }
 

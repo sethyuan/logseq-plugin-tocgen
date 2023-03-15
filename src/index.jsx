@@ -163,6 +163,9 @@ async function main() {
       height: 0;
       border-top: 2px solid transparent;
     }
+    .kef-tocgen-done {
+      opacity: 0.7;
+    }
 
     .kef-tocgen-backtop {
       position: fixed;
