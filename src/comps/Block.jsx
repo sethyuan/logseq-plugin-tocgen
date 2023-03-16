@@ -1,5 +1,4 @@
 import produce from "immer"
-import { t } from "logseq-l10n"
 import { useCallback } from "preact/hooks"
 import { cls } from "reactutils"
 import Arrow from "./Arrow.jsx"
@@ -172,7 +171,7 @@ export default function Block({
           ></span>
           {!logseq.settings?.noPageJump && (
             <button class="kef-tocgen-to" onClick={goTo}>
-              {t("page")}
+              &#xea0c;
             </button>
           )}
         </div>

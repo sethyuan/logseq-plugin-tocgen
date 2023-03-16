@@ -284,7 +284,7 @@ export default function TocGen({
           </button>
           {root.page != null && !logseq.settings?.noPageJump && (
             <button class="kef-tocgen-to" onClick={goToPage}>
-              {t("page")}
+              &#xea0c;
             </button>
           )}
           <button title={t("Edit")} onClick={editBlock}>
