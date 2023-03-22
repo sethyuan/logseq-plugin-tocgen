@@ -119,7 +119,7 @@ async function main() {
       color: var(--ls-link-ref-text-color);
     }
     .kef-tocgen-to {
-      font-family: "tabler-icons240";
+      font-family: 'tabler-icons';
       font-size: 0.8em;
       margin-left: 6px;
       color: var(--ls-icon-color);
