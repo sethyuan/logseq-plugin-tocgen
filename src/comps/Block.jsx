@@ -42,13 +42,22 @@ export default function Block({
     [block],
   )
 
-  const toggleCollapsed = useCallback(() => {
-    setData((data) =>
-      produce(data, (root) => {
-        const node = fromPath(root, path)
-        node.collapsed = !node.collapsed
-      }),
-    )
+  const toggleCollapsed = useCallback((e) => {
+    if (e.altKey) {
+      setData((data) =>
+        produce(data, (root) => {
+          const node = fromPath(root, path)
+          setCollapsed(node, !node.collapsed)
+        }),
+      )
+    } else {
+      setData((data) =>
+        produce(data, (root) => {
+          const node = fromPath(root, path)
+          node.collapsed = !node.collapsed
+        }),
+      )
+    }
   }, [])
 
   const toggleCollapseChildren = useCallback(() => {
@@ -224,4 +233,11 @@ function fromPath(root, path) {
     ret = ret.children[index]
   }
   return ret
+}
+
+function setCollapsed(node, value) {
+  node.collapsed = value
+  for (const child of node.children) {
+    setCollapsed(child, value)
+  }
 }
