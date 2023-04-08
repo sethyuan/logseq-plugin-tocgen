@@ -9,30 +9,33 @@ Generate a TOC of any page/block and quickly access the page/block's content. Bu
 - Sync with content automatically
 - Shift click to open in the sidebar
 - Multiple ways to expand and collapse
+- Alt+Click to expand/collapse all descendants
 - Realtime tracking and highlighting of the current editing position in TOC
 - Embedded blocks and pages are supported
 - Drag and drop in TOC to organize the document structure
 - Dynamic TOC that follows the main page being edited
 - Fixed height TOC that scrolls in sync with the content
-- Quickly open an TOC to the right sidebar through page's context menu
+- Quickly open an TOC to the right sidebar through the toolbar or the page's context menu
+- A "back to top" and "go down" button for easier jumping (optional)
+- Automatically go to the top when switching pages (optional)
+
+For details please go to the plugins settings.
 
 ## Usage
 
-Scenario 0, context menu
+### Scenario 0, context menu
 
 https://user-images.githubusercontent.com/3410293/216609543-9edcf0de-6a87-441a-a599-0b50511bb713.mp4
 
-Scenario 1, dynamic TOC
+### Scenario 1, dynamic TOC
 
 https://user-images.githubusercontent.com/3410293/196385678-ba12ad05-6729-4909-b527-83f5d062fd07.mp4
 
-https://user-images.githubusercontent.com/3410293/213190318-93d60b93-c257-411e-aa84-9b93e3fe129d.mp4
-
-Scenario 2, inline TOC
+### Scenario 2, inline TOC
 
 ![demo](demo_inline_toc.gif)
 
-Support generating TOC entries for embedded blocks/pages
+### Support generating TOC entries for embedded blocks/pages
 
 ![demo](demo_embed.gif)
 
