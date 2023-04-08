@@ -25,6 +25,8 @@ For details please go to the plugins settings.
 
 ### Scenario 0, context menu
 
+![image](https://user-images.githubusercontent.com/3410293/230697775-bcca87fd-64a3-4c5c-9fc0-5f166fcedf59.png)
+
 https://user-images.githubusercontent.com/3410293/216609543-9edcf0de-6a87-441a-a599-0b50511bb713.mp4
 
 ### Scenario 1, dynamic TOC
