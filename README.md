@@ -25,6 +25,8 @@
 
 ### 场景零，右键菜单
 
+![image](https://user-images.githubusercontent.com/3410293/230697775-bcca87fd-64a3-4c5c-9fc0-5f166fcedf59.png)
+
 https://user-images.githubusercontent.com/3410293/216609543-9edcf0de-6a87-441a-a599-0b50511bb713.mp4
 
 ### 场景一，动态目录
