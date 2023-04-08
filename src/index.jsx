@@ -25,6 +25,7 @@ const routeOffHooks = {}
 let resizeObserver = null
 // A map of all roots to observe to for a given slot.
 const embedRoots = {}
+let backTopRouteOff
 
 const backtopScrollHandler = debounce((e) => {
   const scrollTop = e.target.scrollTop
@@ -326,7 +327,21 @@ async function main() {
     }, 0)
   }
 
+  if (!logseq.settings?.noAutoGoToTop) {
+    backTopRouteOff = logseq.App.onRouteChanged(({ parameters: { query } }) => {
+      if (query?.anchor !== "block-content-editor") return
+      const mainContentContainer = parent.document.getElementById(
+        "main-content-container",
+      )
+      keepGoTop(mainContentContainer)
+    })
+  }
+
   logseq.beforeunload(() => {
+    if (backTopRouteOff) {
+      backTopRouteOff()
+    }
+
     for (const off of Object.values(routeOffHooks)) {
       off?.()
     }
@@ -398,6 +413,14 @@ async function main() {
       default: false,
       description: t(
         'Set this to true and you will not see the "page" link in TOC.',
+      ),
+    },
+    {
+      key: "noAutoGoToTop",
+      type: "boolean",
+      default: false,
+      description: t(
+        "Page will not automatically scroll to the top when you switch pages if this is true.",
       ),
     },
   ])
@@ -790,16 +813,23 @@ async function openPageTOC(pageName) {
   await logseq.Editor.exitEditingMode()
 }
 
+function keepGoTop(container) {
+  container.scroll({ top: 0 })
+  setTimeout(() => {
+    if (container.scrollTop > 0) {
+      keepGoTop(container)
+    }
+  }, 200)
+}
+
 const model = {
   backtop() {
-    const mainContainer = parent.document.getElementById("main-container")
     const mainContentContainer = parent.document.getElementById(
       "main-content-container",
     )
     mainContentContainer.scroll({ top: 0 })
   },
   godown() {
-    const mainContainer = parent.document.getElementById("main-container")
     const mainContentContainer = parent.document.getElementById(
       "main-content-container",
     )
