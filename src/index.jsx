@@ -329,7 +329,7 @@ async function main() {
 
   if (!logseq.settings?.noAutoGoToTop) {
     backTopRouteOff = logseq.App.onRouteChanged(({ parameters: { query } }) => {
-      if (query?.anchor !== "block-content-editor") return
+      if (query.anchor && query.anchor !== "block-content-editor") return
       const mainContentContainer = parent.document.getElementById(
         "main-content-container",
       )
@@ -814,11 +814,8 @@ async function openPageTOC(pageName) {
 }
 
 function keepGoTop(container) {
-  container.scroll({ top: 0 })
   setTimeout(() => {
-    if (container.scrollTop > 0) {
-      keepGoTop(container)
-    }
+    container.scrollTop = 0
   }, 200)
 }
 
