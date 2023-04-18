@@ -760,7 +760,7 @@ async function findBlocksToHighlight(levels, headingType) {
 
   if (nodes.length <= 1) return null
 
-  let index = nodes.length - 1 <= levels ? nodes.length - 2 : levels
+  let index = nodes.length - 1 <= levels ? nodes.length - 1 : levels
   while (
     headingType === HeadingTypes.h &&
     index >= 0 &&
