@@ -5,6 +5,7 @@ import { cls } from "reactutils"
 import {
   EMBED_REGEX,
   HeadingTypes,
+  gotoBlock,
   isHeading,
   parseContent,
 } from "../libs/utils.js"
@@ -179,7 +180,7 @@ export default function TocGen({
       if (e.shiftKey) {
         logseq.Editor.openInRightSidebar(page.uuid)
       } else {
-        logseq.Editor.scrollToBlockInPage(page.name, root.uuid)
+        gotoBlock(page.name, root.uuid)
       }
     },
     [page, root],

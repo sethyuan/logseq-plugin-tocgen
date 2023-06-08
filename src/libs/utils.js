@@ -1,3 +1,4 @@
+import { waitMs } from "jsutils"
 import { parse } from "./marked-renderer.js"
 
 export async function parseContent(content) {
@@ -113,4 +114,24 @@ export function waitForEl(selector, timeout) {
   }
 
   return new Promise(tryFindEl)
+}
+
+export async function gotoBlock(pageName, blockUUID, count = 0) {
+  logseq.Editor.scrollToBlockInPage(pageName, blockUUID)
+
+  // Avoid infinite loop
+  if (count >= 20) return
+
+  const mainContentContainer = parent.document.getElementById(
+    "main-content-container",
+  )
+  const blockEl = mainContentContainer.querySelector(`[blockid="${blockUUID}"]`)
+
+  if (blockEl != null) {
+    logseq.Editor.scrollToBlockInPage(pageName, blockUUID)
+  } else {
+    mainContentContainer.scroll({ top: mainContentContainer.scrollHeight })
+    await waitMs(500)
+    await gotoBlock(pageName, blockUUID, count + 1)
+  }
 }

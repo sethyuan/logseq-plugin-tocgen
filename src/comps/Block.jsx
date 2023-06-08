@@ -1,6 +1,7 @@
 import produce from "immer"
 import { useCallback } from "preact/hooks"
 import { cls } from "reactutils"
+import { gotoBlock } from "../libs/utils.js"
 import Arrow from "./Arrow.jsx"
 
 export default function Block({
@@ -16,7 +17,7 @@ export default function Block({
       if (e.shiftKey) {
         logseq.Editor.openInRightSidebar(page.uuid)
       } else {
-        logseq.Editor.scrollToBlockInPage(
+        gotoBlock(
           page.name,
           block.name != null && block.children[0]
             ? block.children[0].uuid
