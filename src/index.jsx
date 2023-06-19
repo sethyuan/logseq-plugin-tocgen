@@ -28,6 +28,7 @@ let resizeObserver = null
 const embedRoots = {}
 let routeOff
 let lastPageUUID
+let lastScrollTop = 0
 
 const backtopScrollHandler = debounce((e) => {
   const scrollTop = e.target.scrollTop
@@ -329,14 +330,11 @@ async function main() {
     }, 0)
   }
 
-  routeOff = logseq.App.onRouteChanged(async ({ template }) => {
-    const mainContentContainer = parent.document.getElementById(
-      "main-content-container",
-    )
+  mainContentContainer.addEventListener("scroll", onScroll, { passive: true })
 
-    // KNOWN_ISSUE: Can't get the correct scrollTop if going to a whiteboard page.
+  routeOff = logseq.App.onRouteChanged(async ({ template }) => {
     if (lastPageUUID) {
-      const last = mainContentContainer.scrollTop
+      const last = lastScrollTop
       await logseq.Editor.upsertBlockProperty(lastPageUUID, "scroll-top", last)
     }
 
@@ -352,7 +350,7 @@ async function main() {
       if (currPage == null) return
 
       lastPageUUID = currPage.uuid
-      if (currPage.properties.scrollTop != null) {
+      if (currPage.properties?.scrollTop != null) {
         setTimeout(() => {
           gotoOffset(mainContentContainer, currPage.properties.scrollTop)
         }, 100)
@@ -361,9 +359,10 @@ async function main() {
   })
 
   logseq.beforeunload(() => {
-    if (routeOff) {
-      routeOff()
-    }
+    routeOff()
+    mainContentContainer.removeEventListener("scroll", onScroll, {
+      passive: true,
+    })
 
     for (const off of Object.values(routeOffHooks)) {
       off?.()
@@ -836,6 +835,10 @@ async function openPageTOC(pageName) {
   // HACK: exitEditingMode does not work if called immediately after appending.
   await waitMs(50)
   await logseq.Editor.exitEditingMode()
+}
+
+function onScroll(e) {
+  lastScrollTop = e.target.scrollTop
 }
 
 const model = {
