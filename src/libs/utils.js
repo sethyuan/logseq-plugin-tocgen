@@ -135,3 +135,13 @@ export async function gotoBlock(pageName, blockUUID, count = 0) {
     await gotoBlock(pageName, blockUUID, count + 1)
   }
 }
+
+export async function gotoOffset(container, scrollTop) {
+  let count = 0
+  while (container.scrollTop !== scrollTop) {
+    // Safe guard
+    if (count++ >= 20) return
+    container.scrollTop = scrollTop
+    await waitMs(500)
+  }
+}

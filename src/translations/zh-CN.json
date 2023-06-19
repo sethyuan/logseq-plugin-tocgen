@@ -9,7 +9,7 @@
   "You can use this setting to disable the \"Back to Top\" functionality.": "如果不想要“滚动回页面顶部”这个功能的话可以通过这个设置关闭。",
   "You can use this setting to disable the \"Go Down\" functionality.": "如果不想要“去页面底部”这个功能的话可以通过这个设置关闭。",
   "Set this to true and you will not see the \"page\" link in TOC.": "设置为true在目录中就不会有\"页面\"链接了。",
-  "Page will not automatically scroll to the top when you switch pages if this is true.": "如果为true则切换页面时不会自动回到页面顶部。",
+  "Defines where to scroll to when you open a page. 'top' goes to the top of the page, 'last' goes to the position where you last leave the page.": "设置切换页面时滚动到哪个位置。'top' 会回到页面顶部， 'last' 是回到最后一次离开时的位置。",
   "Heading type must be \"any\" or \"h\"!": "标题类型需为 any 或 h！",
   "Page/Block not found!": "页面/块不存在！",
   "Expand All": "展开全部",

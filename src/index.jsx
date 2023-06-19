@@ -7,6 +7,7 @@ import TocGen from "./comps/TocGen.jsx"
 import {
   EMBED_REGEX,
   HeadingTypes,
+  gotoOffset,
   isHeading,
   waitForEl,
 } from "./libs/utils.js"
@@ -25,7 +26,8 @@ const routeOffHooks = {}
 let resizeObserver = null
 // A map of all roots to observe to for a given slot.
 const embedRoots = {}
-let backTopRouteOff
+let routeOff
+let lastPageUUID
 
 const backtopScrollHandler = debounce((e) => {
   const scrollTop = e.target.scrollTop
@@ -327,19 +329,40 @@ async function main() {
     }, 0)
   }
 
-  if (!logseq.settings?.noAutoGoToTop) {
-    backTopRouteOff = logseq.App.onRouteChanged(({ parameters: { query } }) => {
-      if (query.anchor && query.anchor !== "block-content-editor") return
-      const mainContentContainer = parent.document.getElementById(
-        "main-content-container",
-      )
-      keepGoTop(mainContentContainer)
-    })
-  }
+  routeOff = logseq.App.onRouteChanged(async ({ template }) => {
+    const mainContentContainer = parent.document.getElementById(
+      "main-content-container",
+    )
+
+    // KNOWN_ISSUE: Can't get the correct scrollTop if going to a whiteboard page.
+    if (lastPageUUID) {
+      const last = mainContentContainer.scrollTop
+      await logseq.Editor.upsertBlockProperty(lastPageUUID, "scroll-top", last)
+    }
+
+    lastPageUUID = null
+    if (template !== "/page/:name") return
+
+    if (logseq.settings?.pageScrollBehavior === "top") {
+      setTimeout(() => {
+        mainContentContainer.scrollTop = 0
+      }, 100)
+    } else {
+      const currPage = await logseq.Editor.getCurrentPage()
+      if (currPage == null) return
+
+      lastPageUUID = currPage.uuid
+      if (currPage.properties.scrollTop != null) {
+        setTimeout(() => {
+          gotoOffset(mainContentContainer, currPage.properties.scrollTop)
+        }, 100)
+      }
+    }
+  })
 
   logseq.beforeunload(() => {
-    if (backTopRouteOff) {
-      backTopRouteOff()
+    if (routeOff) {
+      routeOff()
     }
 
     for (const off of Object.values(routeOffHooks)) {
@@ -416,11 +439,13 @@ async function main() {
       ),
     },
     {
-      key: "noAutoGoToTop",
-      type: "boolean",
-      default: false,
+      key: "pageScrollBehavior",
+      type: "enum",
+      enumPicker: "select",
+      enumChoices: ["top", "last"],
+      default: "top",
       description: t(
-        "Page will not automatically scroll to the top when you switch pages if this is true.",
+        "Defines where to scroll to when you open a page. 'top' goes to the top of the page, 'last' goes to the position where you last leave the page.",
       ),
     },
   ])
@@ -811,12 +836,6 @@ async function openPageTOC(pageName) {
   // HACK: exitEditingMode does not work if called immediately after appending.
   await waitMs(50)
   await logseq.Editor.exitEditingMode()
-}
-
-function keepGoTop(container) {
-  setTimeout(() => {
-    container.scrollTop = 0
-  }, 200)
 }
 
 const model = {

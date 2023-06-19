@@ -17,7 +17,7 @@ Generate a TOC of any page/block and quickly access the page/block's content. Bu
 - Fixed height TOC that scrolls in sync with the content
 - Quickly open an TOC to the right sidebar through the toolbar or the page's context menu
 - A "back to top" and "go down" button for easier jumping (optional)
-- Automatically go to the top when switching pages (optional)
+- Automatically go to the top or the position when you last left when switching pages (optional setting)
 
 For details please go to the plugins settings.
 
