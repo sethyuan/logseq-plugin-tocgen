@@ -160,6 +160,7 @@ export default function Block({
           blocksToHighlight?.has(block.id) && "kef-tocgen-active-block",
         )}
         data-uuid={block.embeddingUUID ?? block.uuid}
+        data-level={path.length}
         onDragEnter={onDragEnter}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
