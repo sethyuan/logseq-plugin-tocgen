@@ -332,31 +332,43 @@ async function main() {
 
   mainContentContainer.addEventListener("scroll", onScroll, { passive: true })
 
-  routeOff = logseq.App.onRouteChanged(async ({ template }) => {
-    if (lastPageUUID) {
-      const last = lastScrollTop
-      await logseq.Editor.upsertBlockProperty(lastPageUUID, "scroll-top", last)
-    }
-
-    lastPageUUID = null
-    if (template !== "/page/:name") return
-
-    if (logseq.settings?.pageScrollBehavior === "top") {
-      setTimeout(() => {
-        mainContentContainer.scrollTop = 0
-      }, 100)
-    } else {
-      const currPage = await logseq.Editor.getCurrentPage()
-      if (currPage == null) return
-
-      lastPageUUID = currPage.uuid
-      if (currPage.properties?.scrollTop != null) {
-        setTimeout(() => {
-          gotoOffset(mainContentContainer, currPage.properties.scrollTop)
-        }, 100)
+  routeOff = logseq.App.onRouteChanged(
+    async ({ template, parameters: { query } }) => {
+      if (lastPageUUID) {
+        const last = lastScrollTop
+        await logseq.Editor.upsertBlockProperty(
+          lastPageUUID,
+          "scroll-top",
+          last,
+        )
       }
-    }
-  })
+
+      lastPageUUID = null
+      if (
+        template !== "/page/:name" ||
+        (query.anchor &&
+          query.anchor.startsWith("block-content-") &&
+          query.anchor !== "block-content-editor")
+      )
+        return
+
+      if (logseq.settings?.pageScrollBehavior === "top") {
+        setTimeout(() => {
+          mainContentContainer.scrollTop = 0
+        }, 100)
+      } else {
+        const currPage = await logseq.Editor.getCurrentPage()
+        if (currPage == null) return
+
+        lastPageUUID = currPage.uuid
+        if (currPage.properties?.scrollTop != null) {
+          setTimeout(() => {
+            gotoOffset(mainContentContainer, currPage.properties.scrollTop)
+          }, 100)
+        }
+      }
+    },
+  )
 
   logseq.beforeunload(() => {
     routeOff()
