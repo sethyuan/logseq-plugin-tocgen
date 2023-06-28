@@ -336,11 +336,13 @@ async function main() {
     async ({ template, parameters: { query } }) => {
       if (lastPageUUID) {
         const last = lastScrollTop
-        await logseq.Editor.upsertBlockProperty(
-          lastPageUUID,
-          "scroll-top",
-          last,
-        )
+        if (last > 0) {
+          await logseq.Editor.upsertBlockProperty(
+            lastPageUUID,
+            "scroll-top",
+            last,
+          )
+        }
       }
 
       lastPageUUID = null
