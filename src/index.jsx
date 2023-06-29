@@ -18,7 +18,7 @@ const BACK_TOP_ICON = `<svg t="1641276288794" class="kef-tocgen-icon-backtop" vi
 const GO_DOWN_ICON = `<svg t="1651059361900" class="kef-tocgen-icon-godown" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12219" width="200" height="200"><path d="M830.24 340.688l11.328 11.312a16 16 0 0 1 0 22.624L530.448 685.76a16 16 0 0 1-22.64 0L196.688 374.624a16 16 0 0 1 0-22.624l11.312-11.312a16 16 0 0 1 22.624 0l288.496 288.496 288.512-288.496a16 16 0 0 1 22.624 0z" p-id="12220"></path></svg>`
 const ICON_TRANSITION_DURATION = 200
 const CURRENT = "*"
-const SIDEBAR_CONTENTS_SELECTOR = ".sidebar-item #contents"
+const SIDEBAR_CONTENTS_SELECTOR = ".sidebar-item div.contents"
 
 const macroObservers = {}
 const intersectionObservers = {}
@@ -827,11 +827,13 @@ async function getCurrentPageName() {
 }
 
 async function openPageTOC(pageName) {
-  // Open contents in sidebar if not already opened.
+  const sidebarBlocks = await logseq.App.getStateFromStore("sidebar/blocks")
+  if (sidebarBlocks.every(([, , type]) => type !== "contents")) {
+    await logseq.App.invokeExternalCommand("logseq.ui/toggle-contents")
+  }
+
   let contentsEl = parent.document.querySelector(SIDEBAR_CONTENTS_SELECTOR)
   if (contentsEl == null) {
-    const contentsPage = await logseq.Editor.getPage("contents")
-    logseq.Editor.openInRightSidebar(contentsPage.uuid)
     // HACK: wait until content is loaded.
     contentsEl = await waitForEl(SIDEBAR_CONTENTS_SELECTOR, 5000)
     if (contentsEl) {
