@@ -335,13 +335,14 @@ async function main() {
   routeOff = logseq.App.onRouteChanged(
     async ({ template, parameters: { query } }) => {
       if (lastPageUUID) {
-        const last = lastScrollTop
-        if (last > 0) {
+        if (lastScrollTop > 0) {
           await logseq.Editor.upsertBlockProperty(
             lastPageUUID,
             "scroll-top",
-            last,
+            lastScrollTop,
           )
+        } else {
+          await logseq.Editor.removeBlockProperty(lastPageUUID, "scroll-top")
         }
       }
 
@@ -363,11 +364,9 @@ async function main() {
         if (currPage == null) return
 
         lastPageUUID = currPage.uuid
-        if (currPage.properties?.scrollTop != null) {
-          setTimeout(() => {
-            gotoOffset(mainContentContainer, currPage.properties.scrollTop)
-          }, 100)
-        }
+        setTimeout(() => {
+          gotoOffset(mainContentContainer, currPage.properties?.scrollTop ?? 0)
+        }, 100)
       }
     },
   )
