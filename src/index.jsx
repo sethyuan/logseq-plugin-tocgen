@@ -841,9 +841,9 @@ async function openPageTOC(pageName) {
   }
   await logseq.Editor.appendBlockInPage(
     "contents",
-    contentsEl?.clientHeight + 100 < parent.window.innerHeight
+    contentsEl?.clientHeight + 135 < parent.window.innerHeight
       ? `{{renderer :tocgen2, [[${pageName}]], calc(100vh - ${
-          contentsEl.clientHeight + 100
+          contentsEl.clientHeight + 135
         }px)}}`
       : `{{renderer :tocgen2, [[${pageName}]]}}`,
   )
