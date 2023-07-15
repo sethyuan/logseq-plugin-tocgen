@@ -608,7 +608,9 @@ async function renderTOC(id, root, height, levels, headingType, uuid) {
 
 function renderNoActivePage(id) {
   const rootEl = parent.document.getElementById(id)
-  render(<div class="kef-tocgen-noactivepage" />, rootEl)
+  if (rootEl) {
+    render(<div class="kef-tocgen-noactivepage" />, rootEl)
+  }
 }
 
 async function observeAndRender(id, root, height, levels, headingType, uuid) {
