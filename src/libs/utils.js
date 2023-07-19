@@ -9,7 +9,7 @@ export async function parseContent(content) {
   content = content.match(/.*/)[0]
 
   // Remove macro renderers.
-  content = content.replace(/ \{\{renderer (?:\}[^\}]|[^\}])+\}\}/g, "")
+  content = content.replace(/(?: |^)\{\{renderer (?:\}[^\}]|[^\}])+\}\}/g, "")
 
   // Remove properties.
   content = content.replace(/^.+:: .+$/gm, "").trim()
