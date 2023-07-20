@@ -131,17 +131,22 @@ export async function gotoBlock(pageName, blockUUID, count = 0) {
     logseq.Editor.scrollToBlockInPage(pageName, blockUUID)
   } else {
     mainContentContainer.scroll({ top: mainContentContainer.scrollHeight })
-    await waitMs(500)
+    await waitMs(300)
     await gotoBlock(pageName, blockUUID, count + 1)
   }
 }
 
 export async function gotoOffset(container, scrollTop) {
   let count = 0
-  while (container.scrollTop !== scrollTop) {
+  let lastScrollTop = -1
+  while (
+    container.scrollTop !== scrollTop &&
+    container.scrollTop !== lastScrollTop
+  ) {
     // Safe guard
     if (count++ >= 20) return
+    lastScrollTop = container.scrollTop
     container.scrollTop = scrollTop
-    await waitMs(500)
+    await waitMs(300)
   }
 }
