@@ -460,6 +460,14 @@ async function main() {
         "Defines where to scroll to when you open a page. 'top' goes to the top of the page, 'last' goes to the position where you last leave the page.",
       ),
     },
+    {
+      key: "maxScrollTryCount",
+      type: "number",
+      default: 20,
+      description: t(
+        "Specify a maximum number of times to scroll down to load lazy content.",
+      ),
+    },
   ])
 
   console.log("#tocgen loaded")

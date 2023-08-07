@@ -17,5 +17,6 @@
   "Edit": "编辑",
   "Delete": "删除",
   "Open TOC": "打开 TOC",
-  "No page detected.": "未检测到页面。"
+  "No page detected.": "未检测到页面。",
+  "Specify a maximum number of times to scroll down to load lazy content.": "指定懒加载内容时的最大向下滚动次数。"
 }

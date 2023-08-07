@@ -120,7 +120,7 @@ export async function gotoBlock(pageName, blockUUID, count = 0) {
   logseq.Editor.scrollToBlockInPage(pageName, blockUUID)
 
   // Avoid infinite loop
-  if (count >= 20) return
+  if (count >= (logseq.settings?.maxScrollTryCount ?? 20)) return
 
   const mainContentContainer = parent.document.getElementById(
     "main-content-container",
@@ -144,7 +144,7 @@ export async function gotoOffset(container, scrollTop) {
     container.scrollTop !== lastScrollTop
   ) {
     // Safe guard
-    if (count++ >= 20) return
+    if (count++ >= (logseq.settings?.maxScrollTryCount ?? 20)) return
     lastScrollTop = container.scrollTop
     container.scrollTop = scrollTop
     await waitMs(300)
