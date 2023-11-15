@@ -254,6 +254,16 @@ async function main() {
       "Open TOC",
     )}">${TB_ICON}</a>`,
   })
+  logseq.App.registerCommandPalette(
+    {
+      key: "open-toc",
+      label: t("Open TOC"),
+      ...(logseq.settings?.openShortcut
+        ? { keybinding: { binding: logseq.settings.openShortcut } }
+        : {}),
+    },
+    openTOC,
+  )
 
   const mainContainer = parent.document.getElementById("main-container")
   const mainContentContainer = parent.document.getElementById(
@@ -425,6 +435,14 @@ async function main() {
       type: "boolean",
       default: false,
       description: t("It defines whether or not to show tags in TOC."),
+    },
+    {
+      key: "openShortcut",
+      type: "string",
+      default: "",
+      description: t(
+        "It defines a shortcut to open a TOC in the Contents page for the current page.",
+      ),
     },
     {
       key: "hideBackTop",
@@ -862,6 +880,15 @@ async function openPageTOC(pageName) {
   await logseq.Editor.exitEditingMode()
 }
 
+async function openTOC() {
+  const pageName = await getCurrentPageName()
+  if (pageName) {
+    openPageTOC(pageName)
+  } else {
+    logseq.UI.showMsg(t("No page detected.", "warn"))
+  }
+}
+
 function onScroll(e) {
   lastScrollTop = e.target.scrollTop
 }
@@ -879,14 +906,7 @@ const model = {
     )
     mainContentContainer.scroll({ top: mainContentContainer.scrollHeight })
   },
-  async openTOC() {
-    const pageName = await getCurrentPageName()
-    if (pageName) {
-      openPageTOC(pageName)
-    } else {
-      logseq.UI.showMsg(t("No page detected.", "warn"))
-    }
-  },
+  openTOC,
 }
 
 logseq.ready(model, main).catch(console.error)

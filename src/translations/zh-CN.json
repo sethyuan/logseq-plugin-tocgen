@@ -18,5 +18,6 @@
   "Delete": "删除",
   "Open TOC": "打开 TOC",
   "No page detected.": "未检测到页面。",
-  "Specify a maximum number of times to scroll down to load lazy content.": "指定懒加载内容时的最大向下滚动次数。"
+  "Specify a maximum number of times to scroll down to load lazy content.": "指定懒加载内容时的最大向下滚动次数。",
+  "It defines a shortcut to open a TOC in the Contents page for the current page.": "设置一个快捷键，为当前页面打开在Contents页面打开一个目录。"
 }
