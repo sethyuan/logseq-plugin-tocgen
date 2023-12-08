@@ -82,6 +82,7 @@ async function main() {
       line-height: 2;
       display: flex;
       align-items: flex-start;
+      font-weight: 600;
     }
     .kef-tocgen-page:hover > div > .inline {
       cursor: pointer;
@@ -112,6 +113,9 @@ async function main() {
       pointer-events: auto !important;
       border-top: 2px solid transparent;
       margin-bottom: -2px;
+    }
+    .kef-tocgen-block[data-level="1"] {
+      font-weight: 600;
     }
     .kef-tocgen-active-block {
       color: var(--ls-link-text-color);
