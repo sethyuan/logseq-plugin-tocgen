@@ -1,6 +1,8 @@
 import { waitMs } from "jsutils"
 import { parse } from "./marked-renderer.js"
 
+const pageAliasRegex = /\[([^\]]*)\]\(([^\)]|\)(?=\)))*\)/g
+
 export async function parseContent(content) {
   // Remove front matter.
   content = content.replace(/---\n(-(?!--)|[^-])*\n---\n?/g, "")
@@ -13,6 +15,9 @@ export async function parseContent(content) {
 
   // Remove properties.
   content = content.replace(/^.+:: .+$/gm, "").trim()
+
+  // Handle page aliases.
+  content = content.replace(pageAliasRegex, "$1")
 
   // Handle markdown.
   content = parse(content)

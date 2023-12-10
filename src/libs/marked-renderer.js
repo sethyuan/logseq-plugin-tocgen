@@ -2,7 +2,6 @@ import { marked } from "marked"
 
 const footnoteRegex = /\[\^[^\]]*\]/g
 const highlightRegex = /==([^=]*)==|\^\^([^\^]*)\^\^/g
-const pageAliasRegex = /\[([^\]]*)\]\([^\)]*\)/g
 
 function htmlDecode(str) {
   if (str.length === 0) {
@@ -78,18 +77,6 @@ const tokenizer = {
       const text = src.replace(highlightRegex, "$1$2")
       return {
         type: "em",
-        raw: src,
-        text,
-        tokens: this.lexer.inlineTokens(text, []),
-      }
-    }
-    return false
-  },
-  link(src) {
-    if (pageAliasRegex.test(src)) {
-      const text = src.replace(pageAliasRegex, "$1")
-      return {
-        type: "link",
         raw: src,
         text,
         tokens: this.lexer.inlineTokens(text, []),
