@@ -124,7 +124,9 @@ export function waitForEl(selector, timeout) {
   return new Promise(tryFindEl)
 }
 
-export async function gotoBlock(pageName, blockUUID, count = 0) {
+export async function gotoBlock(pageName, blockUUID, parentID, count = 0) {
+  await expandAncestors(parentID)
+
   logseq.Editor.scrollToBlockInPage(pageName, blockUUID)
 
   // Avoid infinite loop
@@ -156,5 +158,17 @@ export async function gotoOffset(container, scrollTop) {
     lastScrollTop = container.scrollTop
     container.scrollTop = scrollTop
     await waitMs(300)
+  }
+}
+
+async function expandAncestors(id) {
+  let parent = await logseq.Editor.getBlock(id)
+  while (parent) {
+    if (parent["collapsed?"]) {
+      await logseq.Editor.setBlockCollapsed(parent.uuid, false)
+    }
+    parent = parent.parent
+      ? await logseq.Editor.getBlock(parent.parent.id)
+      : null
   }
 }

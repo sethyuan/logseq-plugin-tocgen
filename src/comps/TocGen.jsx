@@ -119,6 +119,7 @@ export default function TocGen({
         name: src.name,
         content,
         collapsed: collapsings[src.id] ?? level >= expansionLevel,
+        parentID: src.parent?.id,
         children,
       }
     },

@@ -22,6 +22,7 @@ export default function Block({
           block.name != null && block.children[0]
             ? block.children[0].uuid
             : block.uuid,
+          block.name != null && block.children[0] ? block.id : block.parentID,
         )
       }
     },
