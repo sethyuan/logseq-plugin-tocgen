@@ -18,7 +18,6 @@ export default function Block({
         logseq.Editor.openInRightSidebar(page.uuid)
       } else {
         gotoBlock(
-          page.name,
           block.name != null && block.children[0]
             ? block.children[0].uuid
             : block.uuid,

@@ -181,7 +181,7 @@ export default function TocGen({
       if (e.shiftKey) {
         logseq.Editor.openInRightSidebar(page.uuid)
       } else {
-        gotoBlock(page.name, root.uuid)
+        gotoBlock(root.uuid, root.parent?.id)
       }
     },
     [page, root],

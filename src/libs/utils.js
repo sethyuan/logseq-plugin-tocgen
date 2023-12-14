@@ -124,26 +124,35 @@ export function waitForEl(selector, timeout) {
   return new Promise(tryFindEl)
 }
 
-export async function gotoBlock(pageName, blockUUID, parentID, count = 0) {
+export async function gotoBlock(blockUUID, parentID) {
   await expandAncestors(parentID)
 
-  logseq.Editor.scrollToBlockInPage(pageName, blockUUID)
-
-  // Avoid infinite loop
-  if (count >= (logseq.settings?.maxScrollTryCount ?? 20)) return
-
+  const block = await logseq.Editor.getBlock(blockUUID)
+  const pageName = (await logseq.Editor.getPage(block.page.id)).name
   const mainContentContainer = parent.document.getElementById(
     "main-content-container",
   )
-  const blockEl = mainContentContainer.querySelector(`[blockid="${blockUUID}"]`)
 
-  if (blockEl != null) {
+  async function rec(count) {
     logseq.Editor.scrollToBlockInPage(pageName, blockUUID)
-  } else {
-    mainContentContainer.scroll({ top: mainContentContainer.scrollHeight })
-    await waitMs(300)
-    await gotoBlock(pageName, blockUUID, count + 1)
+
+    // Avoid infinite loop
+    if (count >= (logseq.settings?.maxScrollTryCount ?? 10)) return
+
+    const blockEl = mainContentContainer.querySelector(
+      `[blockid="${blockUUID}"]`,
+    )
+
+    if (blockEl != null) {
+      logseq.Editor.scrollToBlockInPage(pageName, blockUUID)
+    } else {
+      mainContentContainer.scroll({ top: mainContentContainer.scrollHeight })
+      await waitMs(300)
+      await rec(count + 1)
+    }
   }
+
+  await rec(0)
 }
 
 export async function gotoOffset(container, scrollTop) {
@@ -162,11 +171,15 @@ export async function gotoOffset(container, scrollTop) {
 }
 
 async function expandAncestors(id) {
+  if (id == null) return
+
   let parent = await logseq.Editor.getBlock(id)
+
   while (parent) {
     if (parent["collapsed?"]) {
       await logseq.Editor.setBlockCollapsed(parent.uuid, false)
     }
+
     parent = parent.parent
       ? await logseq.Editor.getBlock(parent.parent.id)
       : null
