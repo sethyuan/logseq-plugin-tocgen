@@ -5,7 +5,6 @@ import { cls } from "reactutils"
 import {
   EMBED_REGEX,
   HeadingTypes,
-  gotoBlock,
   isHeading,
   parseContent,
 } from "../libs/utils.js"
@@ -49,6 +48,15 @@ export default function TocGen({
 
       if (level > 0 && !isValid(src, content, headingType)) return null
 
+      const node = {
+        id: src.id,
+        uuid: src.uuid,
+        name: src.name,
+        content,
+        collapsed: collapsings[src.id] ?? level >= expansionLevel,
+        children: [],
+      }
+
       const embedMatch = src.content?.match(EMBED_REGEX)
       if (embedMatch) {
         const [, childrenFlag, idStr] = embedMatch
@@ -65,7 +73,7 @@ export default function TocGen({
         pushRoot(slot, { id: embedded.id, page: embedded.page ?? embedded })
 
         if (childrenFlag) {
-          return (
+          const children = (
             await Promise.all(
               embedded.children.map((child) =>
                 constructData(
@@ -80,8 +88,14 @@ export default function TocGen({
               ),
             )
           ).filter((x) => x != null)
+
+          for (const child of children) {
+            child.parent = node
+          }
+
+          return children
         } else {
-          const ret = await constructData(
+          const child = await constructData(
             embedded,
             level,
             maxLevel,
@@ -90,14 +104,16 @@ export default function TocGen({
             collapsings,
             slot,
           )
-          if (ret != null) {
-            ret.embeddingUUID = src.uuid
+
+          if (child != null) {
+            child.embeddingUUID = src.uuid
+            child.parent = node
           }
-          return ret
+
+          return child
         }
       }
 
-      const children = []
       for (const child of src.children) {
         const ret = await constructData(
           child,
@@ -109,19 +125,14 @@ export default function TocGen({
           slot,
         )
         if (ret != null) {
-          children.push(...(Array.isArray(ret) ? ret : [ret]))
+          node.children.push(...(Array.isArray(ret) ? ret : [ret]))
         }
       }
-
-      return {
-        id: src.id,
-        uuid: src.uuid,
-        name: src.name,
-        content,
-        collapsed: collapsings[src.id] ?? level >= expansionLevel,
-        parentID: src.parent?.id,
-        children,
+      for (const child of node.children) {
+        child.parent = node
       }
+
+      return node
     },
     [],
   )
@@ -174,17 +185,6 @@ export default function TocGen({
       }
     },
     [root],
-  )
-
-  const goToPage = useCallback(
-    (e) => {
-      if (e.shiftKey) {
-        logseq.Editor.openInRightSidebar(page.uuid)
-      } else {
-        gotoBlock(root.uuid, root.parent?.id)
-      }
-    },
-    [page, root],
   )
 
   const toggleCollapsed = useCallback(() => {
@@ -284,11 +284,6 @@ export default function TocGen({
           <button title={t("Collapse All")} onClick={collapseAll}>
             <CollapseAllIcon />
           </button>
-          {root.page != null && !logseq.settings?.noPageJump && (
-            <button class="kef-tocgen-to" onClick={goToPage}>
-              &#xea0c;
-            </button>
-          )}
           <button title={t("Edit")} onClick={editBlock}>
             <EditIcon />
           </button>
