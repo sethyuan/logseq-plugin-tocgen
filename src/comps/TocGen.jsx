@@ -1,4 +1,3 @@
-import produce from "immer"
 import { t } from "logseq-l10n"
 import { useCallback, useEffect, useState } from "preact/hooks"
 import { cls } from "reactutils"
@@ -188,51 +187,51 @@ export default function TocGen({
   )
 
   const toggleCollapsed = useCallback(() => {
-    setData((data) =>
-      produce(data, (root) => {
-        root.collapsed = !root.collapsed
-      }),
-    )
+    setData((data) => {
+      const newData = { ...data }
+      newData.collapsed = !newData.collapsed
+      return newData
+    })
   }, [])
 
   const toggleCollapseChildren = useCallback(() => {
-    setData((data) =>
-      produce(data, (root) => {
-        if (
-          root.children.some(
-            (child) => child.children.length > 0 && child.collapsed,
-          )
-        ) {
-          for (const child of root.children) {
-            child.collapsed = false
-          }
-        } else {
-          for (const child of root.children) {
-            child.collapsed = true
-          }
+    setData((data) => {
+      const newData = { ...data }
+      if (
+        newData.children.some(
+          (child) => child.children.length > 0 && child.collapsed,
+        )
+      ) {
+        for (const child of newData.children) {
+          child.collapsed = false
         }
-      }),
-    )
+      } else {
+        for (const child of newData.children) {
+          child.collapsed = true
+        }
+      }
+      return newData
+    })
   }, [])
 
   const expandAll = useCallback(() => {
-    setData((data) =>
-      produce(data, (root) => {
-        const rootCollapsed = root.collapsed
-        setCollapsed(root, false)
-        root.collapsed = rootCollapsed
-      }),
-    )
+    setData((data) => {
+      const newData = { ...data }
+      const rootCollapsed = newData.collapsed
+      setCollapsed(newData, false)
+      newData.collapsed = rootCollapsed
+      return newData
+    })
   }, [])
 
   const collapseAll = useCallback(() => {
-    setData((data) =>
-      produce(data, (root) => {
-        const rootCollapsed = root.collapsed
-        setCollapsed(root, true)
-        root.collapsed = rootCollapsed
-      }),
-    )
+    setData((data) => {
+      const newData = { ...data }
+      const rootCollapsed = newData.collapsed
+      setCollapsed(newData, true)
+      newData.collapsed = rootCollapsed
+      return newData
+    })
   }, [])
 
   const editBlock = useCallback(() => logseq.Editor.editBlock(uuid), [uuid])

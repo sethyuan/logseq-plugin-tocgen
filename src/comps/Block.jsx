@@ -1,4 +1,3 @@
-import produce from "immer"
 import { useCallback } from "preact/hooks"
 import { cls } from "reactutils"
 import { gotoBlock } from "../libs/utils.js"
@@ -43,41 +42,41 @@ export default function Block({
 
   const toggleCollapsed = useCallback((e) => {
     if (e.altKey) {
-      setData((data) =>
-        produce(data, (root) => {
-          const node = fromPath(root, path)
-          setCollapsed(node, !node.collapsed)
-        }),
-      )
+      setData((data) => {
+        const newData = { ...data }
+        const node = fromPath(newData, path)
+        setCollapsed(node, !node.collapsed)
+        return newData
+      })
     } else {
-      setData((data) =>
-        produce(data, (root) => {
-          const node = fromPath(root, path)
-          node.collapsed = !node.collapsed
-        }),
-      )
+      setData((data) => {
+        const newData = { ...data }
+        const node = fromPath(newData, path)
+        node.collapsed = !node.collapsed
+        return newData
+      })
     }
   }, [])
 
   const toggleCollapseChildren = useCallback(() => {
-    setData((data) =>
-      produce(data, (root) => {
-        const node = fromPath(root, path)
-        if (
-          node.children.some(
-            (child) => child.children.length > 0 && child.collapsed,
-          )
-        ) {
-          for (const child of node.children) {
-            child.collapsed = false
-          }
-        } else {
-          for (const child of node.children) {
-            child.collapsed = true
-          }
+    setData((data) => {
+      const newData = { ...data }
+      const node = fromPath(newData, path)
+      if (
+        node.children.some(
+          (child) => child.children.length > 0 && child.collapsed,
+        )
+      ) {
+        for (const child of node.children) {
+          child.collapsed = false
         }
-      }),
-    )
+      } else {
+        for (const child of node.children) {
+          child.collapsed = true
+        }
+      }
+      return newData
+    })
   }, [])
 
   function onDragStart(e) {
