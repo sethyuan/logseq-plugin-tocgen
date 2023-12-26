@@ -27,7 +27,7 @@ let resizeObserver = null
 // A map of all roots to observe to for a given slot.
 const embedRoots = {}
 let routeOff
-let lastPageUUID
+let lastPageID
 let lastScrollTop = 0
 
 const backtopScrollHandler = debounce((e) => {
@@ -348,21 +348,16 @@ async function main() {
 
   routeOff = logseq.App.onRouteChanged(
     async ({ template, parameters: { query } }) => {
-      if (lastPageUUID) {
-        if (lastScrollTop > 0) {
-          await logseq.Editor.upsertBlockProperty(
-            lastPageUUID,
-            "scroll-top",
-            lastScrollTop,
-          )
-        } else {
-          await logseq.Editor.removeBlockProperty(lastPageUUID, "scroll-top")
-        }
+      if (lastPageID) {
+        parent.sessionStorage.setItem(
+          `kef-toc-offset-${lastPageID}`,
+          lastScrollTop,
+        )
       }
 
-      lastPageUUID = null
+      lastPageID = null
       if (
-        template !== "/page/:name" ||
+        (template !== "/" && template !== "/page/:name") ||
         (query.anchor &&
           query.anchor.startsWith("block-content-") &&
           query.anchor !== "block-content-editor")
@@ -374,12 +369,17 @@ async function main() {
           mainContentContainer.scrollTop = 0
         }, 100)
       } else {
-        const currPage = await logseq.Editor.getCurrentPage()
-        if (currPage == null) return
+        const id =
+          template === "/"
+            ? "journals"
+            : (await logseq.Editor.getCurrentPage())?.uuid
+        if (!id) return
 
-        lastPageUUID = currPage.uuid
+        lastPageID = id
         setTimeout(() => {
-          gotoOffset(mainContentContainer, currPage.properties?.scrollTop ?? 0)
+          const offset =
+            parent.sessionStorage.getItem(`kef-toc-offset-${id}`) ?? 0
+          gotoOffset(mainContentContainer, offset)
         }, 100)
       }
     },
